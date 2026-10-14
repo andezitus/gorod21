@@ -12,3 +12,32 @@
 .city-marker.status-outage{--marker-color:var(--event-outage);--marker-icon-color:#fff}.city-marker.status-active{--marker-color:var(--event-active);--marker-icon-color:var(--event-active-ink)}.city-marker.status-confirmed{--marker-color:var(--event-confirmed);--marker-icon-color:#fff}.city-marker.status-outage .marker-stem,.city-marker.status-active .marker-stem,.city-marker.status-confirmed .marker-stem{stroke:var(--marker-color)}.city-marker.status-outage .marker-tag rect{stroke:var(--event-outage)}.city-marker.status-active .marker-tag rect{stroke:var(--event-active)}.city-marker.status-active .marker-tag text{fill:var(--event-active-ink)}.city-marker.status-confirmed .marker-tag rect{stroke:var(--event-confirmed)}.city-marker.status-confirmed .marker-tag text{fill:var(--event-confirmed)}
 .status-pill.status-outage{background:var(--event-outage-soft);color:var(--event-outage)}.status-pill.status-active{background:var(--event-active-soft);color:var(--event-active-ink)}.status-pill.status-confirmed{background:var(--event-confirmed-soft);color:var(--event-confirmed)}.event-symbol.status-outage{background:var(--event-outage-soft);color:var(--event-outage)}.event-symbol.status-active{background:var(--event-active-soft);color:var(--event-active-ink)}.event-symbol.status-confirmed{background:var(--event-confirmed-soft);color:var(--event-confirmed)}
 .event-card[data-status-color="outage"],.activity-item[data-status-color="outage"]{border-color:#e9b6b3}.event-card[data-status-color="active"],.activity-item[data-status-color="active"]{border-color:#ead89d}.event-card[data-status-color="confirmed"],.activity-item[data-status-color="confirmed"]{border-color:#acd3b7}.legend-dot.outage{background:var(--event-outage);box-shadow:0 0 0 3px var(--event-outage-soft)}.legend-dot.active{background:var(--event-active);box-shadow:0 0 0 3px var(--event-active-soft)}.legend-dot.confirmed{background:var(--event-confirmed);box-shadow:0 0 0 3px var(--event-confirmed-soft)}
+.mobile-layer-toggle{display:none}.north-control{top:auto;right:23px;bottom:314px}
+@media(max-width:1220px){.north-control{right:15px}}
+@media(max-width:760px){
+	.topbar{gap:8px}
+	.report-button{width:auto;height:35px;min-width:136px;padding:0 8px!important;gap:5px;flex-shrink:0}
+	.report-button>span{display:inline;font-size:8px;white-space:nowrap}
+	.report-button>.icon{width:15px;height:15px}
+	.layer-switcher{top:17px;left:15px;width:min(164px,42vw);padding:10px 8px 0;z-index:5}
+	.control-caption{display:flex}
+	.mobile-layer-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;height:36px;padding:0 8px;border:1px solid #dce8f6;border-radius:8px;background:#fff;color:#375775;font-size:9px;font-weight:800;text-align:left}
+	.mobile-layer-toggle .icon{width:14px;height:14px;transition:transform .2s}
+	.layer-switcher.dropdown-open .mobile-layer-toggle .icon{transform:rotate(180deg)}
+	.layer-tabs{display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;flex-direction:column;gap:4px;padding:6px;border:0;border-radius:10px;background:#fff;box-shadow:0 8px 22px #27517a24;z-index:6}
+	.layer-switcher.dropdown-open .layer-tabs{display:flex}
+	.layer-tab{min-height:42px;gap:7px;padding:7px 6px}
+	.layer-help{display:none}
+	.map-search-wrap{top:17px;left:calc(15px + min(164px,42vw) + 8px);width:calc(100% - 15px - min(164px,42vw) - 8px - 14px)}
+	.map-search{height:36px;padding:0 8px;gap:5px}
+	.map-search .icon{width:14px;height:14px}
+	.map-search input{font-size:9px}
+	.events-panel{bottom:43px}
+	.map-legend{left:15px;right:15px;bottom:10px;width:auto;justify-content:space-between;gap:5px;font-size:9px}
+	.map-legend>span{gap:4px;white-space:nowrap}
+	.legend-dot{width:7px;height:7px}
+	.map-scale{bottom:135px;right:12px}
+	.north-control{top:auto;right:20px;bottom:307px}
+}
+@media(max-width:430px){.city-label,.header-divider{display:none}}
+@media(max-width:360px){.topbar{padding:0 10px;gap:8px}.report-button{min-width:126px;padding:0 6px!important}.report-button>span{font-size:7px}.layer-switcher{width:min(150px,38vw)}.map-search-wrap{left:calc(15px + min(150px,38vw) + 8px);width:calc(100% - 15px - min(150px,38vw) - 8px - 14px)}}

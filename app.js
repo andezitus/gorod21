@@ -40,7 +40,7 @@
     if(!layers[layer])return;
     state.layer=layer;state.filter='all';$('mapShell').dataset.layer=layer;
     for(const button of document.querySelectorAll('.layer-tab')){const selected=button.dataset.layer===layer;button.classList.toggle('selected',selected);button.setAttribute('aria-selected',String(selected));button.tabIndex=selected?0:-1;}
-    const meta=layers[layer];$('mapLayerTitle').textContent=meta.title;$('mapLayerDescription').textContent=meta.description;$('captionIcon').querySelector('use').setAttribute('href','#i-'+meta.icon);$('captionLevel').textContent=meta.level;$('listLayerName').textContent=meta.name;
+    const meta=layers[layer];$('layerDropdownLabel').textContent=meta.name;$('layerSwitcher').classList.remove('dropdown-open');$('layerDropdownToggle').setAttribute('aria-expanded','false');$('mapLayerTitle').textContent=meta.title;$('mapLayerDescription').textContent=meta.description;$('captionIcon').querySelector('use').setAttribute('href','#i-'+meta.icon);$('captionLevel').textContent=meta.level;$('listLayerName').textContent=meta.name;
     map.setLayer(layer);
     if(!keepDetail){state.selected=null;closeDetail();map.setSelected(events.find(e=>e.layer===layer)?.id||'');}
     updateFilterButtons();renderList();
@@ -152,6 +152,7 @@
     b.addEventListener('click',()=>setLayer(b.dataset.layer));
     b.addEventListener('keydown',e=>{if(!['ArrowUp','ArrowDown','Home','End'].includes(e.key))return;e.preventDefault();const tabs=[...document.querySelectorAll('.layer-tab')],i=tabs.indexOf(b),next=e.key==='Home'?0:e.key==='End'?tabs.length-1:(i+(e.key==='ArrowDown'?1:-1)+tabs.length)%tabs.length;setLayer(tabs[next].dataset.layer);tabs[next].focus();});
   });
+  $('layerDropdownToggle').addEventListener('click',()=>{const open=!$('layerSwitcher').classList.contains('dropdown-open');$('layerSwitcher').classList.toggle('dropdown-open',open);$('layerDropdownToggle').setAttribute('aria-expanded',String(open));});
   document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>{state.filter=b.dataset.filter;updateFilterButtons();renderList();}));
   $('eventList').addEventListener('click',e=>{const b=e.target.closest('[data-open-event]');if(b)openEvent(b.dataset.openEvent);});
   $('detailContent').addEventListener('click',e=>{

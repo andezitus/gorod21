@@ -85,9 +85,10 @@
           </div>
           <div class="map-vignette"></div>
 
-          <div class="layer-switcher">
+          <div class="layer-switcher" id="layerSwitcher">
             <div class="control-caption"><svg class="icon"><use href="#i-layers"/></svg>Слои города<span class="small-counter">3</span></div>
-            <div class="layer-tabs" role="tablist" aria-label="Уровень города" aria-orientation="vertical">
+            <button class="mobile-layer-toggle" type="button" id="layerDropdownToggle" aria-label="Выбрать слой карты" aria-expanded="false" aria-controls="layerTabs"><span id="layerDropdownLabel">Под землёй</span><svg class="icon"><use href="#i-chevron"/></svg></button>
+            <div class="layer-tabs" id="layerTabs" role="tablist" aria-label="Уровень города" aria-orientation="vertical">
               <button type="button" class="layer-tab" data-layer="above" role="tab" id="tab-above" aria-controls="mapViewport" aria-selected="false" tabindex="-1"><span class="layer-thumbnail above-thumb"><span></span><span></span><span></span></span><span><b>Над землёй</b><small>Дома и освещение</small></span><span class="layer-radio"></span></button>
               <button type="button" class="layer-tab" data-layer="ground" role="tab" id="tab-ground" aria-controls="mapViewport" aria-selected="false" tabindex="-1"><span class="layer-thumbnail ground-thumb"><span></span><span></span><span></span></span><span><b>На земле</b><small>Дороги и дворы</small></span><span class="layer-radio"></span></button>
               <button type="button" class="layer-tab selected" data-layer="under" role="tab" id="tab-under" aria-controls="mapViewport" aria-selected="true" tabindex="0"><span class="layer-thumbnail under-thumb"><span></span><span></span><span></span></span><span><b>Под землёй</b><small>Вода и теплосети</small></span><span class="layer-radio"></span></button>
