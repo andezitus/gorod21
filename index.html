@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f8ff">
+  <meta name="description" content="Город 21 — интерактивная карта Чебоксар в трёх слоях. Узнайте, что происходит рядом, кто отвечает за работы и когда они завершатся. Демонстрационный прототип проекта CASE-IN.">
+  <title>Город 21 — Чебоксары в трёх слоях</title>
+  <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./assets/fonts.css">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./city-data.js" defer></script>
+  <script src="./map.js" defer></script>
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <svg class="svg-library" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
+    <symbol id="i-map" viewBox="0 0 24 24"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3Z M9 3v15 M15 6v15"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 10 5-10 5L2 8Z M2 12l10 5 10-5 M2 16l10 5 10-5"/></symbol>
+    <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 3s-7 8-7 12a7 7 0 0 0 14 0c0-4-7-12-7-12Z M8 15a4 4 0 0 0 4 4"/></symbol>
+    <symbol id="i-road" viewBox="0 0 24 24"><path d="m6 3-4 18 M18 3l4 18 M12 3v3 M12 10v4 M12 18v3"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7 M5 9v12h14V9 M9 21v-8h6v8"/></symbol>
+    <symbol id="i-build" viewBox="0 0 24 24"><path d="M4 21V6l10-3v18 M14 10h6v11 M2 21h20 M8 7h2 M8 11h2 M8 15h2 M17 14h1 M17 18h1"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 8-3 9h18c0-1-3-2-3-9 M9 21h6 M12 2v1"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 4v16 M4 12h16"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M4 12h16"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="m5 5 14 14 M19 5 5 19"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14 M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M20 12H4 M10 6l-6 6 6 6"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3 M12 19v3 M2 12h3 M19 12h3"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6 M12 7h.01"/></symbol>
+    <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M4 4h16l2 12v4H2v-4Z M2 15h6l2 3h4l2-3h6"/></symbol>
+    <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4Z"/></symbol>
+    <symbol id="i-wrench" viewBox="0 0 24 24"><path d="m14 7 3 3 4-4a7 7 0 0 1-9 9l-6 6-3-3 6-6a7 7 0 0 1 9-9Z"/></symbol>
+    <symbol id="i-cone" viewBox="0 0 24 24"><path d="m8 19 3-16h2l3 16 M9 9h6 M8 14h8 M4 21v-2h16v2Z"/></symbol>
+    <symbol id="i-light" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0-4 10c1 1 1 2 1 3h6c0-1 0-2 1-3a6 6 0 0 0-4-10Z M9 19h6 M10 22h4"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6Z m-4 9 3 3 5-6"/></symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24"><path d="M8 3H3v5 M16 3h5v5 M21 16v5h-5 M3 16v5h5"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/></symbol>
+  </defs></svg>
+
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="Город 21 — главная">
+      <svg class="brand-mark" viewBox="0 0 42 44" aria-hidden="true"><path d="m21 23 18 9-18 9-18-9Z" fill="#b3d8ff"/><path d="m21 13 18 9-18 9-18-9Z" fill="#6fabff"/><path d="m21 3 18 9-18 9L3 12Z" fill="#2476ed"/></svg>
+      <span>Город <b>21</b></span>
+    </a>
+    <div class="header-divider"></div>
+    <div class="city-label"><svg class="icon"><use href="#i-pin"/></svg><span>Чебоксары</span><span class="city-secondary">Чувашская Республика</span></div>
+    <nav class="top-links" aria-label="Основная навигация"><span class="current-page">Карта города</span><button type="button" data-about>О проекте</button></nav>
+    <div class="header-actions">
+      <span class="demo-badge"><span></span>Демо · CASE-IN</span>
+      <button class="icon-button notification-button" type="button" id="notificationsBtn" aria-label="Подписки и уведомления"><svg class="icon"><use href="#i-bell"/></svg><span id="notificationDot" class="notification-dot" hidden></span></button>
+      <button class="primary-button report-button" type="button" data-report><svg class="icon"><use href="#i-plus"/></svg><span>Сообщить о проблеме</span></button>
+      <button class="user-avatar" type="button" id="homeBtn" aria-label="Настроить события возле дома">Я</button>
+    </div>
+  </header>
+
+  <div class="app-layout">
+    <aside class="rail" aria-label="Разделы приложения">
+      <button type="button" class="rail-button active" id="mapNav" aria-label="Карта города" title="Карта города"><svg class="icon"><use href="#i-map"/></svg></button>
+      <button type="button" class="rail-button" id="homeNav" aria-label="Мой дом" title="Мой дом"><svg class="icon"><use href="#i-home"/></svg></button>
+      <button type="button" class="rail-button" id="savedNav" aria-label="Мои подписки" title="Мои подписки"><svg class="icon"><use href="#i-bookmark"/></svg></button>
+      <button type="button" class="rail-button" id="reportsNav" aria-label="Мои обращения" title="Мои обращения"><svg class="icon"><use href="#i-inbox"/></svg><span class="rail-dot" id="reportDot" hidden></span></button>
+      <div class="rail-spacer"></div>
+      <div class="rail-line"></div>
+      <button type="button" class="rail-button" data-about aria-label="О проекте" title="О проекте"><svg class="icon"><use href="#i-info"/></svg></button>
+      <span class="rail-caption">21</span>
+    </aside>
+    <main class="main-content">
+      <section class="page-heading" aria-label="Обзор карты">
+        <div><div class="eyebrow">ВАШ ГОРОД. ВАШ РАЙОН.</div><h1>Всё, что происходит рядом<span>.</span></h1><p>Городские проблемы, работы и отключения — на одной карте.</p></div>
+        <div class="heading-stats"><div><span class="stat-num" id="statReports">2</span><span>Обращения</span></div><div><span class="stat-num" id="statWorks">5</span><span>Работы</span></div><div><span class="stat-num" id="statOutages">2</span><span>Отключения</span></div></div>
+      </section>
+
+      <section class="workspace" aria-label="Интерактивная карта Чебоксар">
+        <div class="map-shell" id="mapShell" data-layer="under">
+          <div class="map-grain"></div>
+          <div class="map-viewport" id="mapViewport" tabindex="0" aria-label="Трёхмерная карта. Перетаскивайте для перемещения, используйте плюс и минус для масштаба. Стрелки перемещают карту.">
+            <svg id="cityMap" viewBox="0 0 1200 880" role="img" aria-label="Объёмная карта центра Чебоксар с заливом, улицами и зданиями"><title>Карта Чебоксар в трёх слоях</title></svg>
+          </div>
+          <div class="map-vignette"></div>
+
+          <div class="layer-switcher">
+            <div class="control-caption"><svg class="icon"><use href="#i-layers"/></svg>Слои города<span class="small-counter">3</span></div>
+            <div class="layer-tabs" role="tablist" aria-label="Уровень города" aria-orientation="vertical">
+              <button type="button" class="layer-tab" data-layer="above" role="tab" id="tab-above" aria-controls="mapViewport" aria-selected="false" tabindex="-1"><span class="layer-thumbnail above-thumb"><span></span><span></span><span></span></span><span><b>Над землёй</b><small>Дома и освещение</small></span><span class="layer-radio"></span></button>
+              <button type="button" class="layer-tab" data-layer="ground" role="tab" id="tab-ground" aria-controls="mapViewport" aria-selected="false" tabindex="-1"><span class="layer-thumbnail ground-thumb"><span></span><span></span><span></span></span><span><b>На земле</b><small>Дороги и дворы</small></span><span class="layer-radio"></span></button>
+              <button type="button" class="layer-tab selected" data-layer="under" role="tab" id="tab-under" aria-controls="mapViewport" aria-selected="true" tabindex="0"><span class="layer-thumbnail under-thumb"><span></span><span></span><span></span></span><span><b>Под землёй</b><small>Вода и теплосети</small></span><span class="layer-radio"></span></button>
+            </div>
+            <div class="layer-help">Один город — три уровня</div>
+          </div>
+
+          <div class="map-search-wrap"><div class="map-search"><svg class="icon"><use href="#i-search"/></svg><input id="mapSearch" type="search" placeholder="Адрес или событие" autocomplete="off" aria-label="Поиск адреса или события"><span class="search-shortcut">/</span></div><div class="search-results" id="searchResults" hidden></div></div>
+          <div class="map-top-status"><span class="live-dot"></span>Московский район<span class="pilot-label">Пилот</span></div>
+          <div class="north-control"><button type="button" id="rotateBtn" aria-label="Повернуть карту на 90 градусов" title="Повернуть карту"><span class="north-n">С</span><svg width="25" height="31" viewBox="0 0 25 31" aria-hidden="true"><path d="m12.5 2 9 25-9-6-9 6Z" fill="#3879d8"/><path d="M12.5 2v19l9 6Z" fill="#b3d5ff"/></svg></button></div>
+
+          <div class="map-toolbar" aria-label="Управление картой"><button type="button" id="zoomIn" aria-label="Приблизить" title="Приблизить"><svg class="icon"><use href="#i-plus"/></svg></button><button type="button" id="zoomOut" aria-label="Отдалить" title="Отдалить"><svg class="icon"><use href="#i-minus"/></svg></button><span></span><button type="button" id="resetMap" aria-label="Вернуть обзор города" title="Вернуть обзор города"><svg class="icon"><use href="#i-target"/></svg></button><button type="button" id="viewMode" class="view-mode" aria-label="Переключить на плоскую карту" aria-pressed="false">3D</button></div>
+
+          <div class="map-layer-caption"><span class="layer-caption-icon"><svg class="icon" id="captionIcon"><use href="#i-drop"/></svg></span><div><b id="mapLayerTitle">Под поверхностью города</b><span id="mapLayerDescription">Водопровод, теплосети и канализация</span></div><span class="caption-line"></span><span class="caption-level" id="captionLevel">−1</span></div>
+          <div class="map-legend"><span><i class="legend-dot ongoing"></i>В работе</span><span><i class="legend-dot planned"></i>Плановые</span><span><i class="legend-dot request"></i>Обращения</span></div>
+          <div class="map-scale"><span id="scaleLine"></span><small id="scaleLabel">500 м</small></div>
+          <div class="map-attribution"><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap</a><span>Сети и события — демо</span></div>
+          <div class="map-tip" id="mapTip"><svg class="icon"><use href="#i-info"/></svg><span>Нажмите на метку, чтобы узнать подробности</span><button type="button" id="dismissTip" aria-label="Скрыть подсказку"><svg class="icon"><use href="#i-x"/></svg></button></div>
+        </div>
+
+        <aside class="events-panel" id="eventsPanel" aria-label="События на карте">
+          <div class="panel-heading"><div><span class="eyebrow">ЧТО ПРОИСХОДИТ</span><h2>События рядом <span id="eventCount">3</span></h2></div><button class="icon-button mobile-panel-toggle" type="button" id="panelToggle" aria-expanded="false" aria-label="Развернуть список событий"><svg class="icon"><use href="#i-chevron"/></svg></button></div>
+          <div class="panel-content" id="panelContent">
+            <div class="panel-filter" role="group" aria-label="Фильтр событий"><button type="button" class="selected" data-filter="all" aria-pressed="true">Все</button><button type="button" data-filter="work" aria-pressed="false">Работы</button><button type="button" data-filter="outage" aria-pressed="false">Отключения</button><button type="button" data-filter="report" aria-pressed="false">Обращения</button></div>
+            <div class="layer-events-label"><span id="listLayerName">Под землёй</span><span class="events-updated"><i></i>Демо-данные</span></div>
+            <div class="event-list" id="eventList"></div>
+            <div class="home-prompt"><div class="home-prompt-icon"><svg class="icon"><use href="#i-home"/></svg></div><h3>Ваш дом — в центре внимания</h3><p>Следите за работами и отключениями рядом с вашим адресом.</p><button type="button" id="setupHomeBtn">Добавить мой дом<svg class="icon"><use href="#i-arrow"/></svg></button></div>
+            <div class="panel-footer"><svg class="icon"><use href="#i-shield"/></svg><span>Сообщения жителей проходят проверку</span></div>
+          </div>
+          <div class="detail-content" id="detailContent" hidden></div>
+        </aside>
+      </section>
+      <footer class="app-footer"><span><i></i>Город 21<span class="footer-sep">/</span>Понятный город начинается с информации</span><span>Концепция для CASE-IN <span class="footer-sep">·</span> Пилот: один район Чебоксар</span></footer>
+    </main>
+  </div>
+
+  <dialog class="modal" id="reportModal" aria-labelledby="reportTitle"><form id="reportForm">
+    <div class="modal-header"><span class="modal-icon"><svg class="icon"><use href="#i-pin"/></svg></span><button type="button" class="icon-button" data-close aria-label="Закрыть"><svg class="icon"><use href="#i-x"/></svg></button></div><span class="eyebrow">ВЫ ПОМОГАЕТЕ ГОРОДУ</span><h2 id="reportTitle">Сообщить о проблеме</h2><p class="modal-lead">Расскажите, что произошло. Обращение появится на карте после проверки.</p>
+    <label>Уровень города<select id="reportLayer" name="layer"><option value="above">Над землёй — фасады, освещение</option><option value="ground">На земле — дороги, дворы</option><option value="under">Под землёй — вода, теплосети</option></select></label>
+    <label>Адрес<input id="reportAddress" name="address" maxlength="160" placeholder="Например, Московский проспект, 8" required autocomplete="street-address"></label>
+    <label>Что произошло?<textarea name="description" id="reportDescription" placeholder="Опишите проблему и ограничения для жителей" minlength="10" maxlength="1600" required rows="4"></textarea></label>
+    <div class="demo-note"><svg class="icon"><use href="#i-info"/></svg>Это демо: обращение сохраняется у вас и не отправляется в городские службы.</div>
+    <button type="submit" class="primary-button full-width">Создать обращение<svg class="icon"><use href="#i-arrow"/></svg></button>
+  </form></dialog>
+
+  <dialog class="modal" id="homeModal" aria-labelledby="homeTitle"><form id="homeForm">
+    <div class="modal-header"><span class="modal-icon"><svg class="icon"><use href="#i-home"/></svg></span><button type="button" class="icon-button" data-close aria-label="Закрыть"><svg class="icon"><use href="#i-x"/></svg></button></div><span class="eyebrow">МОЙ РАЙОН</span><h2 id="homeTitle">Что происходит у дома?</h2><p class="modal-lead">Выберите адрес, чтобы быстро находить события рядом и сохранять подписки.</p>
+    <label>Ваш адрес<input id="homeAddress" name="address" placeholder="Улица и номер дома" maxlength="160" required list="streetOptions" autocomplete="street-address"></label><datalist id="streetOptions"></datalist>
+    <label>Радиус внимания</label><div class="radius-options"><button type="button" data-radius="300">300 м</button><button type="button" data-radius="500" class="selected">500 м</button><button type="button" data-radius="1000">1 км</button></div>
+    <div class="home-preview"><svg class="icon"><use href="#i-bell"/></svg><span>Работы, отключения и новые обращения возле выбранного дома</span></div><div class="demo-note">Подписка работает в прототипе. Реальные push-уведомления пока не подключены.</div>
+    <button type="submit" class="primary-button full-width">Сохранить мой дом<svg class="icon"><use href="#i-check"/></svg></button>
+  </form></dialog>
+
+  <dialog class="modal wide-modal" id="aboutModal" aria-labelledby="aboutTitle"><div class="modal-header"><span class="modal-icon"><svg class="icon"><use href="#i-layers"/></svg></span><button type="button" class="icon-button" data-close aria-label="Закрыть"><svg class="icon"><use href="#i-x"/></svg></button></div><span class="eyebrow">CASE-IN · КОНЦЕПЦИЯ ПРОЕКТА</span><h2 id="aboutTitle">Один город. Одна понятная карта.</h2><p class="modal-lead">«Город 21» объединяет информацию о городских проблемах, ремонтных работах и отключениях для жителей Чувашской Республики.</p><div class="about-levels"><div><svg class="icon"><use href="#i-build"/></svg><b>Над землёй</b><p>Фасады, освещение и воздушные линии</p></div><div><svg class="icon"><use href="#i-road"/></svg><b>На земле</b><p>Дороги, дворы, тротуары и благоустройство</p></div><div><svg class="icon"><use href="#i-drop"/></svg><b>Под землёй</b><p>Водопровод, теплосети и канализация</p></div></div><div class="about-story"><span>Ремонт трубы</span><svg class="icon"><use href="#i-arrow"/></svg><span>Раскопки</span><svg class="icon"><use href="#i-arrow"/></svg><span>Асфальт</span></div><p class="about-text">Связанные этапы объединены в одну историю: житель видит, что происходит, кто отвечает за каждый этап и когда планируют закончить.</p><div class="about-pilot"><div><small>ПРЕДЛАГАЕМЫЙ ПИЛОТ</small><b>Один район Чебоксар</b></div><span class="status-pill">Стадия концепции</span></div><p class="about-text">Данные предполагается получать от муниципалитета, коммунальных организаций и управляющих компаний по договорённости. В этом прототипе геометрия улиц и зданий взята из OpenStreetMap, инженерные сети и события условные. Предполагаемое отличие — объединение источников и этапов работ; уникальность ещё предстоит проверить.</p><div class="about-team"><span>Финансовая математика → оценка затрат и эффекта</span><span>Инфокоммуникации → интеграция и передача данных</span></div></dialog>
+
+  <dialog class="modal" id="activityModal" aria-labelledby="activityTitle"><div class="modal-header"><span class="modal-icon"><svg class="icon" id="activityIcon"><use href="#i-bell"/></svg></span><button type="button" class="icon-button" data-close aria-label="Закрыть"><svg class="icon"><use href="#i-x"/></svg></button></div><span class="eyebrow" id="activityEyebrow">МОЙ ГОРОД</span><h2 id="activityTitle">Подписки и уведомления</h2><div id="activityBody"></div></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"><svg class="icon"><use href="#i-check"/></svg><span></span></div>
+  <noscript><div class="noscript-note">Для интерактивной карты включите JavaScript в браузере.</div></noscript>
+</body>
+</html>
