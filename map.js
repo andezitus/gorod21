@@ -31,19 +31,25 @@
     const d = window.CITY_DATA, b = d.bounds;
     return [(lon - b[0]) / (b[2] - b[0]) * d.w, (b[3] - lat) / (b[3] - b[1]) * d.h];
   }
+  function eventColorCategory(event) {
+    if (event.type === 'outage') return 'outage';
+    if (event.status === 'work' || event.status === 'planned') return 'active';
+    if (event.status === 'confirmed') return 'confirmed';
+    return 'unknown';
+  }
   function marker(event, opt, selected) {
     const roof = event.layer === 'above' ? (nearestBuilding(event.point)?.h || 18) * .85 + 4 : event.layer === 'under' ? -16 : 2;
     const [x, y] = project(event.point, roof, opt);
-    const status = event.status === 'planned' ? '#72bce9' : event.type === 'report' ? '#6793cd' : '#267ee8';
+    const colorCategory = eventColorCategory(event);
     const tag = event.short || event.title;
     const tagWidth = Math.min(192, tag.length * 5.1 + 20);
-    return `<g class="city-marker ${selected ? 'selected' : ''}" data-event-id="${esc(event.id)}" data-marker-layer="${esc(event.layer)}" transform="translate(${x},${y})" role="button" tabindex="0" aria-label="${esc(event.title + '. ' + event.address)}"><title>${esc(event.title + ' · ' + event.address)}</title>
-      <ellipse cx="0" cy="0" rx="22" ry="9" fill="${status}" fill-opacity=".12"/>
-      <ellipse class="marker-ring" cx="0" cy="0" rx="26" ry="11" fill="none" stroke="${status}" stroke-opacity=".4" stroke-width="1.1"/>
+    return `<g class="city-marker status-${colorCategory} ${selected ? 'selected' : ''}" data-event-id="${esc(event.id)}" data-marker-layer="${esc(event.layer)}" transform="translate(${x},${y})" role="button" tabindex="0" aria-label="${esc(event.title + '. ' + event.address)}"><title>${esc(event.title + ' · ' + event.address)}</title>
+      <ellipse cx="0" cy="0" rx="22" ry="9" fill="var(--marker-color, #267ee8)" fill-opacity=".12"/>
+      <ellipse class="marker-ring" cx="0" cy="0" rx="26" ry="11" fill="none" stroke="var(--marker-color, #267ee8)" stroke-opacity=".4" stroke-width="1.1"/>
       <path class="marker-stem" d="M0,-18V-2"/>
-      <circle class="marker-disc" cx="0" cy="-35" r="17" fill="${status}" stroke="#f7fbff" stroke-width="2.5" filter="url(#pinShadow)"/>
-      <path d="m-4-20 4 7 4-7" fill="${status}"/>
-      <use href="#i-${event.icon || 'drop'}" x="-9" y="-44" width="18" height="18" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle class="marker-disc" cx="0" cy="-35" r="17" fill="var(--marker-color, #267ee8)" stroke="#f7fbff" stroke-width="2.5" filter="url(#pinShadow)"/>
+      <path d="m-4-20 4 7 4-7" fill="var(--marker-color, #267ee8)"/>
+      <use href="#i-${event.icon || 'drop'}" x="-9" y="-44" width="18" height="18" fill="none" stroke="var(--marker-icon-color, #fff)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
       <g class="marker-tag" style="display:${selected ? 'inline' : 'none'}"><rect x="25" y="-49" width="${tagWidth}" height="28" rx="7" fill="#ffffff" fill-opacity=".97" stroke="#d8e9fd" stroke-width=".7"/><text x="35" y="-32" font-family="Manrope, sans-serif" font-size="9" font-weight="700" fill="#5e8cbe">${esc(tag)}</text></g>
     </g>`;
   }
@@ -178,6 +184,6 @@
       this.viewport.addEventListener('keydown',e=>{if(e.target.closest('[data-event-id]'))return;const actions={ArrowLeft:[30,0],ArrowRight:[-30,0],ArrowUp:[0,30],ArrowDown:[0,-30]};if(actions[e.key]){e.preventDefault();this.pan[0]+=actions[e.key][0];this.pan[1]+=actions[e.key][1];this.setTransform();}else if(e.key==='+'||e.key==='='){e.preventDefault();this.changeZoom(1.2);window.dispatchEvent(new CustomEvent('mapzoom'));}else if(e.key==='-'){e.preventDefault();this.changeZoom(1/1.2);window.dispatchEvent(new CustomEvent('mapzoom'));}});
     }
   }
-  window.GorodMapRenderer={drawScene,project,nearestRoadPoint,nearestBuilding,geographicPoint,center,dist};
+  window.GorodMapRenderer={drawScene,project,nearestRoadPoint,nearestBuilding,geographicPoint,center,dist,eventColorCategory};
   window.CityMap=CityMap;
 })();
