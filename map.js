@@ -6,7 +6,7 @@
   const round = n => Math.round(n * 100) / 100;
   function project(p, z = 0, options = {}) {
     const d = window.CITY_DATA;
-    const a = (options.rotation || 0) * Math.PI / 180 + (options.flat ? 0 : -24 * Math.PI / 180);
+    const a = options.flat ? 0 : -24 * Math.PI / 180;
     const x = p[0] - d.w / 2, y = p[1] - d.h / 2;
     const rx = x * Math.cos(a) - y * Math.sin(a);
     const ry = x * Math.sin(a) + y * Math.cos(a);
@@ -27,6 +27,89 @@
     for (const road of window.CITY_DATA.roads) if (road.n === name) for (const p of road.p) {const d = dist(p, target);if (d < distance) {distance = d;best = p;}}
     return [...best];
   }
+  function nearestPointOnSegment(point, start, end) {
+    const dx=end[0]-start[0],dy=end[1]-start[1],lengthSquared=dx*dx+dy*dy;
+    const t=lengthSquared?Math.max(0,Math.min(1,((point[0]-start[0])*dx+(point[1]-start[1])*dy)/lengthSquared)):0;
+    const projected=[start[0]+dx*t,start[1]+dy*t];
+    return {point:projected,t,distance:dist(point,projected)};
+  }
+  function nearestPolylinePoint(point, points) {
+    let best={point:[...points[0]],segmentIndex:0,t:0,distance:dist(point,points[0])};
+    for(let i=0;i<points.length-1;i++){
+      const projected=nearestPointOnSegment(point,points[i],points[i+1]);
+      if(projected.distance<best.distance)best={...projected,segmentIndex:i};
+    }
+    return best;
+  }
+  function pointAtDistance(points,cumulative,distance) {
+    if(distance<=0)return [...points[0]];
+    for(let i=0;i<cumulative.length-1;i++){
+      if(distance>cumulative[i+1])continue;
+      const length=cumulative[i+1]-cumulative[i],t=length?(distance-cumulative[i])/length:0;
+      return [points[i][0]+(points[i+1][0]-points[i][0])*t,points[i][1]+(points[i+1][1]-points[i][1])*t];
+    }
+    return [...points[points.length-1]];
+  }
+  function slicePolylineAround(points, location, radius) {
+    if(points.length<2)return points.map(point=>[...point]);
+    const cumulative=[0];
+    for(let i=1;i<points.length;i++)cumulative.push(cumulative[i-1]+dist(points[i-1],points[i]));
+    const position=cumulative[location.segmentIndex]+dist(points[location.segmentIndex],location.point);
+    const start=Math.max(0,position-radius),end=Math.min(cumulative[cumulative.length-1],position+radius);
+    const slice=[pointAtDistance(points,cumulative,start)];
+    for(let i=1;i<points.length-1;i++)if(cumulative[i]>start&&cumulative[i]<end)slice.push([...points[i]]);
+    slice.push(pointAtDistance(points,cumulative,end));
+    return slice;
+  }
+  function branchPathFromEndpoint(points, endpointIndex, maxLength) {
+    const route=endpointIndex===0?points:[...points].reverse(),branch=[[...route[0]]];
+    let remaining=maxLength;
+    for(let i=1;i<route.length&&remaining>0;i++){
+      const length=dist(route[i-1],route[i]);
+      if(length<=remaining){branch.push([...route[i]]);remaining-=length;}
+      else{const t=remaining/length;branch.push([route[i-1][0]+(route[i][0]-route[i-1][0])*t,route[i-1][1]+(route[i][1]-route[i-1][1])*t]);}
+    }
+    return branch;
+  }
+  function branchRoutes(mainRoads, candidateRoads, threshold=16, maxLength=82) {
+    const branches=[];
+    for(const road of candidateRoads){
+      if(road.p.length<2)continue;
+      let attachment=null;
+      for(const endpointIndex of [0,road.p.length-1]){
+        for(const mainRoad of mainRoads){
+          const nearest=nearestPolylinePoint(road.p[endpointIndex],mainRoad.p);
+          if(!attachment||nearest.distance<attachment.distance)attachment={...nearest,endpointIndex,distance:nearest.distance};
+        }
+      }
+      if(!attachment||attachment.distance>threshold)continue;
+      const branch=branchPathFromEndpoint(road.p,attachment.endpointIndex,maxLength);
+      branches.push([attachment.point,...branch]);
+    }
+    return branches;
+  }
+  function eventNetwork(event, roads) {
+    let mainRoad=null,location=null;
+    for(const road of roads){
+      const nearest=nearestPolylinePoint(event.point,road.p);
+      if(!location||nearest.distance<location.distance){mainRoad=road;location=nearest;}
+    }
+    if(!mainRoad||!location)return {main:[],branches:[]};
+    const main=slicePolylineAround(mainRoad.p,location,48);
+    const candidates=roads.filter(road=>road!==mainRoad&&!['primary','secondary','tertiary','footway','pedestrian'].includes(road.k));
+    const branches=[];
+    for(const road of candidates){
+      if(road.p.length<2)continue;
+      let attachment=null;
+      for(const endpointIndex of [0,road.p.length-1]){
+        const nearest=nearestPolylinePoint(road.p[endpointIndex],main);
+        if(!attachment||nearest.distance<attachment.distance)attachment={...nearest,endpointIndex,distance:nearest.distance};
+      }
+      if(!attachment||attachment.distance>19)continue;
+      branches.push([attachment.point,...branchPathFromEndpoint(road.p,attachment.endpointIndex,52)]);
+    }
+    return {main,branches};
+  }
   function geographicPoint(lon, lat) {
     const d = window.CITY_DATA, b = d.bounds;
     return [(lon - b[0]) / (b[2] - b[0]) * d.w, (b[3] - lat) / (b[3] - b[1]) * d.h];
@@ -37,6 +120,20 @@
     if (event.status === 'confirmed') return 'confirmed';
     return 'unknown';
   }
+  function statusColor(category) {
+    return category==='outage'?'#c94343':category==='active'?'#d8a31c':category==='confirmed'?'#27834e':'#267ee8';
+  }
+  function eventNetworkMarkup(event, opt) {
+    const network=eventNetwork(event,window.CITY_DATA.roads);
+    if(!network.main.length)return '';
+    const category=eventColorCategory(event),color=statusColor(category),z=event.layer==='under'?-18:3;
+    let markup=`<g class="event-highlight event-highlight-${event.layer} status-${category}" data-highlight-event="${esc(event.id)}" fill="none" stroke-linecap="round" stroke-linejoin="round" pointer-events="none">`;
+    for(const [index,route] of [network.main,...network.branches].entries()){
+      const line=path(route,z,opt),width=index===0?(event.layer==='under'?7.4:10):event.layer==='under'?5:6.5;
+      markup+=`<path d="${line}" stroke="${color}" stroke-opacity=".22" stroke-width="${width+8}" filter="url(#pipeGlow)"/><path d="${line}" stroke="${color}" stroke-opacity=".94" stroke-width="${width}"/><path d="${line}" stroke="#fff" stroke-opacity=".72" stroke-width="1.1"/>`;
+    }
+    return markup+'</g>';
+  }
   function marker(event, opt, selected) {
     const roof = event.layer === 'above' ? (nearestBuilding(event.point)?.h || 18) * .85 + 4 : event.layer === 'under' ? -16 : 2;
     const [x, y] = project(event.point, roof, opt);
@@ -44,8 +141,6 @@
     const tag = event.short || event.title;
     const tagWidth = Math.min(192, tag.length * 5.1 + 20);
     return `<g class="city-marker status-${colorCategory} ${selected ? 'selected' : ''}" data-event-id="${esc(event.id)}" data-marker-layer="${esc(event.layer)}" transform="translate(${x},${y})" role="button" tabindex="0" aria-label="${esc(event.title + '. ' + event.address)}"><title>${esc(event.title + ' · ' + event.address)}</title>
-      <ellipse cx="0" cy="0" rx="22" ry="9" fill="var(--marker-color, #267ee8)" fill-opacity=".12"/>
-      <ellipse class="marker-ring" cx="0" cy="0" rx="26" ry="11" fill="none" stroke="var(--marker-color, #267ee8)" stroke-opacity=".4" stroke-width="1.1"/>
       <path class="marker-stem" d="M0,-18V-2"/>
       <circle class="marker-disc" cx="0" cy="-35" r="17" fill="var(--marker-color, #267ee8)" stroke="#f7fbff" stroke-width="2.5" filter="url(#pinShadow)"/>
       <path d="m-4-20 4 7 4-7" fill="var(--marker-color, #267ee8)"/>
@@ -84,39 +179,35 @@
       out+=`<path d="${line}" stroke="#4c96ee" stroke-opacity=".16" stroke-width="${width+8}" filter="url(#pipeGlow)"/><path d="${line}" stroke="#407fca" stroke-width="${width+1.5}" opacity=".45" transform="translate(0,1.5)"/><path d="${line}" stroke="url(#pipeGradient)" stroke-width="${width}"/><path d="${line}" stroke="#c5eeff" stroke-width="${width*.25}" opacity=".85"/>`;
       if (i%14===0) out+=`<path class="pipe-pulse" d="${line}" stroke="#def5ff" stroke-width="1.7" stroke-opacity=".9"/>`;
     }
-    const joints=[];
-    for(const r of mainRoads) for(const p of [r.p[0],r.p.at(-1)]) if(!joints.some(q=>dist(p,q)<14)) joints.push(p);
-    for(const p of joints) {const [x,y]=project(p,-19,opt);out+=`<circle cx="${x}" cy="${y}" r="3.4" fill="#86c7fb" stroke="#f0faff" stroke-width="1.1"/><circle cx="${x}" cy="${y}" r="1" fill="#4991da"/>`;}
-    for(let i=0;i<d.buildings.length;i+=9){
-      const p=center(d.buildings[i].p);let q=null,mini=Infinity;
-      for(const joint of joints){const distance=dist(p,joint);if(distance<mini){mini=distance;q=joint;}}
-      if(q&&mini<68) out+=`<path d="${path([q,[p[0],q[1]],p],-19,opt)}" stroke="#70b4ee" stroke-width="2.2" opacity=".6"/><path d="${path([q,[p[0],q[1]],p],-19,opt)}" stroke="#cceeff" stroke-width=".7" opacity=".65"/>`;
+    const branchRoads=d.roads.filter(r=>['residential','unclassified','living_street','service'].includes(r.k));
+    for(const branch of branchRoutes(mainRoads,branchRoads,18,82)){
+      const line=path(branch,-19,opt);
+      out+=`<path d="${line}" stroke="#4c96ee" stroke-opacity=".12" stroke-width="6.4" filter="url(#pipeGlow)"/><path d="${line}" stroke="#337fd0" stroke-width="3.2" opacity=".78"/><path d="${line}" stroke="#9bd2ff" stroke-width=".9" opacity=".9"/>`;
     }
     out+='</g>';
-    out+=`<g class="city-land"><path d="${path(corners,0,opt,true)}" fill="url(#landGradient)" fill-opacity=".58" stroke="#d5e4f5" stroke-width="1"/>`;
-    for(const park of d.parks) out+=`<path d="${path(park,.2,opt,true)}" fill="#cadaf0" fill-opacity=".55" stroke="#c2d7ed" stroke-opacity=".32" stroke-width=".5"/>`;
+    out+=`<g class="city-land"><path d="${path(corners,0,opt,true)}" fill="url(#landGradient)" fill-opacity=".58" stroke="#91afd2" stroke-width="1.8"/>`;
+    for(const park of d.parks) out+=`<path d="${path(park,.2,opt,true)}" fill="#cadaf0" fill-opacity=".6" stroke="#9db8d8" stroke-opacity=".68" stroke-width="1"/>`;
     out+='</g>';
     out+='<g class="city-water">';
     for(const water of d.water) out+=`<path d="${path(water.p,.3,opt,true)}" fill="url(#waterGradient)" fill-opacity=".73" stroke="#b1ccee" stroke-width="1.6"/>`;
     out+='</g>';
     out+='<g class="city-roads" fill="none" stroke-linecap="round" stroke-linejoin="round">';
     const widths={primary:8,secondary:6.5,tertiary:4.5,residential:3.2,unclassified:3.2,living_street:2.5,pedestrian:1.6,service:1.3,footway:.65};
-    for(const r of d.roads){const width=widths[r.k]||2;out+=`<path d="${path(r.p,r.b?2:1,opt)}" stroke="${r.k==='footway'?'#d2e1f3':'#c2d7f1'}" stroke-width="${width+1.7}"/><path d="${path(r.p,r.b?2:1,opt)}" stroke="#f1f7ff" stroke-width="${width}"/>`;}
+    for(const r of d.roads){const width=widths[r.k]||2;out+=`<path d="${path(r.p,r.b?2:1,opt)}" stroke="${r.k==='footway'?'#b8cee8':'#9eb9d8'}" stroke-width="${width+2.2}"/><path d="${path(r.p,r.b?2:1,opt)}" stroke="#f8fbff" stroke-width="${width}"/>`;}
     out+='</g>';
     out+='<g class="city-active-roads" fill="none" stroke-linecap="round" stroke-linejoin="round">';
     for(const r of mainRoads) {const width=widths[r.k];out+=`<path d="${path(r.p,2,opt)}" stroke="#6fb5ff" stroke-width="${width+4}" stroke-opacity=".16"/><path d="${path(r.p,2,opt)}" stroke="${r.k==='primary'?'#408cec':'#6baff6'}" stroke-width="${width*.78}" stroke-opacity=".85"/><path d="${path(r.p,2,opt)}" stroke="#c7e7ff" stroke-width=".6" stroke-dasharray="5 7" stroke-opacity=".8"/>`;}
     out+='</g>';
-    const hot=new Set(events.filter(e=>e.layer==='above').map(e=>nearestBuilding(e.point)?.id));
     const sorted=[...d.buildings].sort((a,b)=>project(center(a.p),0,opt)[1]-project(center(b.p),0,opt)[1]);
     out+='<g class="city-buildings" stroke-linejoin="round">';
     for(const b of sorted){
       const z=b.h*.85, p=b.p;
       if(!opt.flat){
         for(let j=0;j<p.length;j++){const a=p[j],c=p[(j+1)%p.length];const ap=project(a,0,opt),cp=project(c,0,opt);if(cp[0]<ap[0])continue;
-          out+=`<path d="M${ap.join(',')}L${cp.join(',')}L${project(c,z,opt).join(',')}L${project(a,z,opt).join(',')}Z" fill="${hot.has(b.id)?'#6ba7ed':cp[1]>ap[1]?'#a9c9ef':'#c0d9f7'}" stroke="#83addf" stroke-opacity=".38" stroke-width=".65"/>`;
+          out+=`<path d="M${ap.join(',')}L${cp.join(',')}L${project(c,z,opt).join(',')}L${project(a,z,opt).join(',')}Z" fill="${cp[1]>ap[1]?'#a9c9ef':'#c0d9f7'}" stroke="#668db8" stroke-opacity=".58" stroke-width=".85"/>`;
         }
       }
-      out+=`<path data-building="${b.id}" d="${path(p,z,opt,true)}" fill="url(#${hot.has(b.id)?'hotRoof':'roofGradient'})" stroke="${hot.has(b.id)?'#5e9ced':'#a7c6eb'}" stroke-width="${hot.has(b.id)?1.3:.75}"/>`;
+      out+=`<path data-building="${b.id}" d="${path(p,z,opt,true)}" fill="url(#roofGradient)" stroke="#7899bf" stroke-width="1"/>`;
     }
     out+='</g>';
     out+='<g class="city-windows" fill="none" stroke="#81afe3" stroke-opacity=".32" stroke-width=".5">';
@@ -124,13 +215,27 @@
     out+='</g>';
     out+='<g class="city-lights">';
     const lightPoints=mainRoads.filter(r=>r.n.includes('Иванова')||r.n.includes('Московский')).filter((_,i)=>i%3===0).map(r=>r.p[Math.floor(r.p.length/2)]);
-    for(const p of lightPoints){const [x,y]=project([p[0]+6,p[1]+3],0,opt);out+=`<path d="M${x},${y}v-22h7" fill="none" stroke="#71a5ea" stroke-width="1.4"/><ellipse cx="${x+7}" cy="${y-22}" rx="8" ry="5" fill="#7abaff" opacity=".3" filter="url(#lightGlow)"/><ellipse cx="${x+7}" cy="${y-22}" rx="2.8" ry="1.4" fill="#408bf1"/>`;}
+    const lightEvents=events.filter(event=>event.layer==='above'&&event.icon==='light');
+    for(const p of lightPoints){
+      const [x,y]=project([p[0]+6,p[1]+3],0,opt);
+      const related=lightEvents.reduce((best,event)=>!best||dist(event.point,p)<dist(best.point,p)?event:best,null);
+      const active=related&&dist(related.point,p)<24,color=active?statusColor(eventColorCategory(related)):'#408bf1';
+      out+=`<path d="M${x},${y}v-22h7" fill="none" stroke="${active?color:'#71a5ea'}" stroke-width="${active?2.8:1.4}"/><ellipse cx="${x+7}" cy="${y-22}" rx="8" ry="5" fill="${active?color:'#7abaff'}" opacity="${active?'.42':'.3'}" filter="url(#lightGlow)"/><ellipse cx="${x+7}" cy="${y-22}" rx="${active?4:2.8}" ry="${active?3:1.4}" fill="${color}"/>`;
+    }
+    out+='</g>';
+    out+='<g class="event-object-highlights-above" pointer-events="none">';
+    for(const event of events.filter(item=>item.layer==='above'&&item.icon!=='light')){
+      const object=nearestBuilding(event.point);if(!object)continue;
+      const color=statusColor(eventColorCategory(event)),height=object.h*.85;
+      out+=`<path class="event-object-highlight status-${eventColorCategory(event)}" d="${path(object.p,height,opt,true)}" fill="${color}" fill-opacity=".74" stroke="${color}" stroke-width="2.4"/>`;
+    }
     out+='</g>';
     out+='<g class="city-labels" font-family="Manrope, sans-serif">';
     const labels=[{p:geographicPoint(47.227,56.157),t:'В О Л Г А',size:20,color:'#8eafd6',spacing:5},{p:geographicPoint(47.246,56.143),t:'Чебоксарский залив',size:11,color:'#7b9fcf',spacing:.5},{p:[285,470],t:'Московский проспект',size:8,color:'#8fa6c4'},{p:[684,334],t:'ул. Константина Иванова',size:7.5,color:'#8fa6c4'},{p:[211,657],t:'ул. Пирогова',size:7.5,color:'#91aacb'},{p:[799,690],t:'Президентский бульвар',size:7.5,color:'#91aacb'}];
     for(const l of labels){const [x,y]=project(l.p,1,opt);out+=`<text x="${x}" y="${y}" fill="${l.color}" font-size="${l.size}" text-anchor="middle" letter-spacing="${l.spacing||0}" font-weight="${l.size>10?600:500}" stroke="#e6f0fb" stroke-width="2.3" paint-order="stroke">${esc(l.t)}</text>`;}
     out+='</g>';
     out+='<g id="homeRadius"></g>';
+    out+='<g id="eventHighlights">'+events.filter(event=>event.layer==='ground'||event.layer==='under').map(event=>eventNetworkMarkup(event,opt)).join('')+'</g>';
     out+='<g id="cityMarkers">'+events.map(e=>marker(e,opt,e.id===selectedId)).join('')+'</g>';
     return out+'</g>';
   }
@@ -138,10 +243,10 @@
   class CityMap {
     constructor(svg, viewport, events, select) {
       this.svg=svg;this.viewport=viewport;this.events=events;this.select=select;this.layer='under';this.selected='u1';
-      this.zoom=1;this.pan=[0,0];this.rotation=0;this.flat=false;this.home=null;this.drag=null;this.didDrag=false;
+      this.zoom=1;this.pan=[0,0];this.flat=false;this.home=null;this.drag=null;this.didDrag=false;
       this.render();this.bind();
     }
-    options(){return {rotation:this.rotation,flat:this.flat};}
+    options(){return {flat:this.flat};}
     render(){
       this.svg.innerHTML='<title>Карта Чебоксар — улицы, здания, залив и три уровня городских событий</title>'+drawScene(this.options(),this.events,this.selected);
       this.world=this.svg.querySelector('#mapWorld');this.setTransform();this.updateMarkers();this.updateHome();
@@ -161,7 +266,6 @@
     changeZoom(factor){this.zoom=Math.max(.68,Math.min(3.6,this.zoom*factor));this.setTransform();return this.zoom;}
     reset(){this.zoom=1;this.pan=[0,0];this.setTransform();}
     focus(p){const [x,y]=project(p,0,this.options());this.pan=[(600-x)*this.zoom,(465-y)*this.zoom];this.setTransform();}
-    rotate(){this.rotation=(this.rotation+90)%360;this.pan=[0,0];this.render();}
     toggleView(){this.flat=!this.flat;this.render();return this.flat;}
     setHome(home){this.home=home;this.updateHome();}
     updateHome(){
