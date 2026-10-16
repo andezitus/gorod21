@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f4f8ff">
-  <meta name="description" content="Город 21 — интерактивная карта Чебоксар в трёх слоях. Городские работы, отключения и сообщения жителей на одной карте.">
-  <title>Город 21 — Чебоксары в трёх слоях</title>
+  <meta name="description" content="Город 21 — интерактивная карта Чебоксар в трех слоях. Городские работы, отключения и сообщения жителей на одной карте.">
+  <title>Город 21 — Чебоксары в трех слоях</title>
   <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./assets/fonts.css">
   <link rel="stylesheet" href="./styles.css">
@@ -49,6 +49,7 @@
     <a class="brand" href="./" aria-label="Город 21 — главная">
       <svg class="brand-mark" viewBox="0 0 42 44" aria-hidden="true"><path d="m21 23 18 9-18 9-18-9Z" fill="#b3d8ff"/><path d="m21 13 18 9-18 9-18-9Z" fill="#6fabff"/><path d="m21 3 18 9-18 9L3 12Z" fill="#2476ed"/></svg>
       <span>Город <b>21</b></span>
+      <span class="brand-slogan">Один город — три уровня</span>
     </a>
     <div class="header-divider"></div>
     <div class="city-label"><svg class="icon"><use href="#i-pin"/></svg><span>Чебоксары</span><span class="city-secondary">Чувашская Республика</span></div>
@@ -73,31 +74,29 @@
     </aside>
     <main class="main-content">
       <section class="page-heading" aria-label="Обзор карты">
-        <div><div class="eyebrow">ВАШ ГОРОД. ВАШ РАЙОН.</div><h1>Всё, что происходит рядом<span>.</span></h1><p>Городские проблемы, работы и отключения — на одной карте.</p></div>
+        <div><div class="eyebrow">ВАШ ГОРОД. ВАШ РАЙОН.</div><h1>Все, что происходит рядом<span>.</span></h1><p>Городские проблемы, работы и отключения — на одной карте.</p></div>
         <div class="heading-stats"><div><span class="stat-num" id="statReports">2</span><span>Обращения</span></div><div><span class="stat-num" id="statWorks">5</span><span>Работы</span></div><div><span class="stat-num" id="statOutages">2</span><span>Отключения</span></div></div>
       </section>
 
       <section class="workspace" aria-label="Интерактивная карта Чебоксар">
         <div class="map-shell" id="mapShell" data-layer="under">
           <div class="map-grain"></div>
-          <div class="map-viewport" id="mapViewport" tabindex="0" aria-label="Трёхмерная карта. Перетаскивайте для перемещения, используйте плюс и минус для масштаба. Стрелки перемещают карту.">
-            <svg id="cityMap" viewBox="0 0 1200 880" role="img" aria-label="Объёмная карта центра Чебоксар с заливом, улицами и зданиями"><title>Карта Чебоксар в трёх слоях</title></svg>
+          <div class="map-viewport" id="mapViewport" tabindex="0" aria-label="Трехмерная карта. Перетаскивайте для перемещения, используйте плюс и минус для масштаба. Стрелки перемещают карту.">
+            <svg id="cityMap" viewBox="0 0 1200 880" role="img" aria-label="Объемная карта центра Чебоксар с заливом, улицами и зданиями"><title>Карта Чебоксар в трех слоях</title></svg>
           </div>
           <div class="map-vignette"></div>
 
           <div class="layer-switcher" id="layerSwitcher">
             <div class="control-caption"><svg class="icon"><use href="#i-layers"/></svg>Слои города<span class="small-counter">3</span></div>
-            <button class="mobile-layer-toggle" type="button" id="layerDropdownToggle" aria-label="Выбрать слой карты" aria-expanded="false" aria-controls="layerTabs"><span id="layerDropdownLabel">Под землёй</span><svg class="icon"><use href="#i-chevron"/></svg></button>
+            <button class="mobile-layer-toggle" type="button" id="layerDropdownToggle" aria-label="Выбрать слой карты" aria-expanded="false" aria-controls="layerTabs"><span id="layerDropdownLabel">Под землей</span><svg class="icon"><use href="#i-chevron"/></svg></button>
             <div class="layer-tabs" id="layerTabs" role="tablist" aria-label="Уровень города" aria-orientation="vertical">
-              <button type="button" class="layer-tab" data-layer="above" role="tab" id="tab-above" aria-controls="mapViewport" aria-selected="false" tabindex="-1"><span class="layer-thumbnail above-thumb"><span></span><span></span><span></span></span><span><b>Над землёй</b><small>Дома и освещение</small></span><span class="layer-radio"></span></button>
+              <button type="button" class="layer-tab" data-layer="above" role="tab" id="tab-above" aria-controls="mapViewport" aria-selected="false" tabindex="-1"><span class="layer-thumbnail above-thumb"><span></span><span></span><span></span></span><span><b>Над землей</b><small>Дома и освещение</small></span><span class="layer-radio"></span></button>
               <button type="button" class="layer-tab" data-layer="ground" role="tab" id="tab-ground" aria-controls="mapViewport" aria-selected="false" tabindex="-1"><span class="layer-thumbnail ground-thumb"><span></span><span></span><span></span></span><span><b>На земле</b><small>Дороги и дворы</small></span><span class="layer-radio"></span></button>
-              <button type="button" class="layer-tab selected" data-layer="under" role="tab" id="tab-under" aria-controls="mapViewport" aria-selected="true" tabindex="0"><span class="layer-thumbnail under-thumb"><span></span><span></span><span></span></span><span><b>Под землёй</b><small>Вода и теплосети</small></span><span class="layer-radio"></span></button>
+              <button type="button" class="layer-tab selected" data-layer="under" role="tab" id="tab-under" aria-controls="mapViewport" aria-selected="true" tabindex="0"><span class="layer-thumbnail under-thumb"><span></span><span></span><span></span></span><span><b>Под землей</b><small>Вода и теплосети</small></span><span class="layer-radio"></span></button>
             </div>
-            <div class="layer-help">Один город — три уровня</div>
           </div>
 
-          <div class="map-search-wrap"><div class="map-search"><svg class="icon"><use href="#i-search"/></svg><input id="mapSearch" type="search" placeholder="Адрес или событие" autocomplete="off" aria-label="Поиск адреса или события"><span class="search-shortcut">/</span></div><div class="search-results" id="searchResults" hidden></div></div>
-          <div class="map-top-status"><span class="live-dot"></span>Московский район</div>
+          <div class="map-search-wrap"><div class="map-search"><svg class="icon"><use href="#i-search"/></svg><input id="mapSearch" type="search" placeholder="Адрес или событие" autocomplete="off" aria-label="Поиск адреса или события"><span class="search-shortcut">/</span></div><button class="desktop-panels-toggle" type="button" id="desktopPanelsToggle" aria-controls="eventsPanel" aria-expanded="true" aria-label="Скрыть события" title="Скрыть события"><svg class="icon"><use href="#i-back"/></svg></button><div class="search-results" id="searchResults" hidden></div></div>
           <div class="map-toolbar" aria-label="Управление картой"><button type="button" id="zoomIn" aria-label="Приблизить" title="Приблизить"><svg class="icon"><use href="#i-plus"/></svg></button><button type="button" id="zoomOut" aria-label="Отдалить" title="Отдалить"><svg class="icon"><use href="#i-minus"/></svg></button><span></span><button type="button" id="resetMap" aria-label="Вернуть обзор города" title="Вернуть обзор города"><svg class="icon"><use href="#i-target"/></svg></button><button type="button" id="viewMode" class="view-mode" aria-label="Переключить на плоскую карту" aria-pressed="false">3D</button></div>
 
           <div class="map-layer-caption"><span class="layer-caption-icon"><svg class="icon" id="captionIcon"><use href="#i-drop"/></svg></span><div><b id="mapLayerTitle">Под поверхностью города</b><span id="mapLayerDescription">Водопровод, теплосети и канализация</span></div><span class="caption-line"></span><span class="caption-level" id="captionLevel">−1</span></div>
@@ -112,7 +111,7 @@
           <div class="panel-heading"><div><span class="eyebrow">ЧТО ПРОИСХОДИТ</span><h2>События рядом <span id="eventCount">3</span></h2></div><button class="icon-button mobile-panel-toggle" type="button" id="panelToggle" aria-expanded="false" aria-label="Развернуть список событий"><svg class="icon"><use href="#i-chevron"/></svg></button></div>
           <div class="panel-content" id="panelContent">
             <div class="panel-filter" role="group" aria-label="Фильтр событий"><button type="button" class="selected" data-filter="all" aria-pressed="true">Все</button><button type="button" data-filter="work" aria-pressed="false">Работы</button><button type="button" data-filter="outage" aria-pressed="false">Отключения</button><button type="button" data-filter="report" aria-pressed="false">Обращения</button></div>
-            <div class="layer-events-label"><span id="listLayerName">Под землёй</span><span class="events-updated"><i></i>Условные сведения</span></div>
+            <div class="layer-events-label"><span id="listLayerName">Под землей</span><span class="events-updated"><i></i>Условные сведения</span></div>
             <div class="event-list" id="eventList"></div>
             <div class="home-prompt"><div class="home-prompt-icon"><svg class="icon"><use href="#i-home"/></svg></div><h3>Ваш дом — в центре внимания</h3><p>Следите за работами и отключениями рядом с вашим адресом.</p><button type="button" id="setupHomeBtn">Добавить мой дом<svg class="icon"><use href="#i-arrow"/></svg></button></div>
             <div class="panel-footer"><svg class="icon"><use href="#i-shield"/></svg><span>Сообщения жителей проходят проверку</span></div>
@@ -126,7 +125,7 @@
 
   <dialog class="modal" id="reportModal" aria-labelledby="reportTitle"><form id="reportForm">
     <div class="modal-header"><span class="modal-icon"><svg class="icon"><use href="#i-pin"/></svg></span><button type="button" class="icon-button" data-close aria-label="Закрыть"><svg class="icon"><use href="#i-x"/></svg></button></div><span class="eyebrow">ВЫ ПОМОГАЕТЕ ГОРОДУ</span><h2 id="reportTitle">Сообщить о проблеме</h2><p class="modal-lead">Расскажите, что произошло. Обращение появится на карте после проверки.</p>
-    <label>Уровень города<select id="reportLayer" name="layer"><option value="above">Над землёй — фасады, освещение</option><option value="ground">На земле — дороги, дворы</option><option value="under">Под землёй — вода, теплосети</option></select></label>
+    <label>Уровень города<select id="reportLayer" name="layer"><option value="above">Над землей — фасады, освещение</option><option value="ground">На земле — дороги, дворы</option><option value="under">Под землей — вода, теплосети</option></select></label>
     <label>Адрес<input id="reportAddress" name="address" maxlength="160" placeholder="Например, Московский проспект, 8" required autocomplete="street-address"></label>
     <label>Что произошло?<textarea name="description" id="reportDescription" placeholder="Опишите проблему и ограничения для жителей" minlength="10" maxlength="1600" required rows="4"></textarea></label>
     <div class="notice-note"><svg class="icon"><use href="#i-info"/></svg>Обращение сохраняется в этом браузере и не отправляется городским службам.</div>
@@ -168,7 +167,7 @@
     <span class="eyebrow">О ПРОЕКТЕ</span>
     <h2 id="aboutTitle">Один город. Одна понятная карта.</h2>
     <p class="modal-lead">«Город 21» объединяет информацию о городских проблемах, работах и отключениях.</p>
-    <div class="about-levels"><div><svg class="icon"><use href="#i-build"/></svg><b>Над землёй</b><p>Фасады, освещение и воздушные линии</p></div><div><svg class="icon"><use href="#i-road"/></svg><b>На земле</b><p>Дороги, дворы, тротуары и благоустройство</p></div><div><svg class="icon"><use href="#i-drop"/></svg><b>Под землёй</b><p>Водопровод, теплосети и канализация</p></div></div>
+    <div class="about-levels"><div><svg class="icon"><use href="#i-build"/></svg><b>Над землей</b><p>Фасады, освещение и воздушные линии</p></div><div><svg class="icon"><use href="#i-road"/></svg><b>На земле</b><p>Дороги, дворы, тротуары и благоустройство</p></div><div><svg class="icon"><use href="#i-drop"/></svg><b>Под землей</b><p>Водопровод, теплосети и канализация</p></div></div>
     <p class="about-text">Геометрия улиц и зданий получена из OpenStreetMap. Сведения о событиях, инженерных сетях и сроках условные и не подтверждены городскими службами.</p>
   </dialog>
 
