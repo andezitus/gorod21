@@ -11,33 +11,34 @@
   };
   const snap = (name, p) => R.nearestRoadPoint(name, p);
   const building = p => {const b=R.nearestBuilding(p);return b?R.center(b.p):p;};
-  const waterPoint = snap('Московский проспект',[461,516]);
+  const waterPoint = R.nearestUtilityPoint('улица Эльгера',D.landmarks.water);
   const events = [
-    {id:'u1',layer:'under',type:'outage',status:'work',icon:'drop',title:'Авария на водопроводе',short:'Авария водопровода',address:'Московский проспект · у залива',point:waterPoint,deadline:'15 окт, 18:00',description:'Поврежден участок водопровода. Бригада заменяет трубу. После завершения ремонта восстановят дорожное покрытие.',restriction:'Холодная вода временно отключена в соседних домах. Проход через место раскопок ограничен.',owner:'Аварийная бригада водоканала',source:'Пример сообщения коммунальной организации',updated:'14 окт, 17:40',story:true},
-    {id:'u2',layer:'under',type:'work',status:'work',icon:'wrench',title:'Замена участка теплосети',short:'Ремонт теплосети',address:'ул. Константина Иванова',point:snap('улица Константина Иванова',[650,335]),deadline:'16 окт, 17:00',description:'Проводится плановая замена участка теплосети. После проверки герметичности участок подключат к системе.',restriction:'Вдоль места работ установлено ограждение. Проход по соседнему тротуару открыт.',owner:'Теплоснабжающая организация',source:'Пример плана коммунальных работ',updated:'14 окт, 17:15'},
-    {id:'u3',layer:'under',type:'outage',status:'planned',icon:'drop',title:'Плановое отключение воды',short:'Плановое отключение',address:'ул. Пирогова · жилой квартал',point:snap('улица Пирогова',[266,672]),deadline:'16 окт, 13:00',description:'Для обслуживания запорной арматуры планируется кратковременное отключение холодного водоснабжения.',restriction:'Холодная вода: 16 октября, с 09:00 до 13:00.',owner:'Коммунальная служба водоснабжения',source:'Уведомление о плановом отключении',updated:'14 окт, 16:50'},
-    {id:'g1',layer:'ground',type:'work',status:'planned',icon:'road',title:'Восстановление асфальта',short:'Восстановление дороги',address:'Московский проспект · у залива',point:waterPoint,deadline:'16 окт, 18:00',description:'После устранения аварии на водопроводе подрядчик засыплет траншею и восстановит асфальтовое покрытие.',restriction:'Участок возле раскопок огражден. Восстановление покрытия начнется после завершения работ на трубе.',owner:'Подрядчик по благоустройству',source:'Пример связанного этапа муниципальных работ',updated:'14 окт, 17:40',story:true},
-    {id:'g2',layer:'ground',type:'report',status:'confirmed',icon:'cone',title:'Повреждение покрытия во дворе',short:'Яма во дворе',address:'Московский район · жилой двор',point:building([244,530]),deadline:'17 окт, 12:00',description:'Житель сообщил о поврежденном покрытии на проезде во дворе. В примере обращение проверено и передано дорожной службе.',restriction:'На участке неровное покрытие. При проезде нужна осторожность.',owner:'Муниципальная дорожная служба',source:'Проверенное обращение жителя · пример',updated:'14 окт, 15:20'},
-    {id:'g3',layer:'ground',type:'work',status:'work',icon:'cone',title:'Ремонт тротуара',short:'Благоустройство',address:'Историческая часть · у залива',point:snap('улица Константина Иванова',[777,382]),deadline:'17 окт, 18:00',description:'Выполняется ремонт тротуара: заменяют поврежденные элементы покрытия и приводят в порядок примыкания.',restriction:'Часть тротуара закрыта. Обход организован по соседней пешеходной дорожке.',owner:'Служба городского благоустройства',source:'Пример карточки текущих работ',updated:'14 окт, 17:05'},
-    {id:'a1',layer:'above',type:'report',status:'confirmed',icon:'build',title:'Повреждение фасада',short:'Обращение по фасаду',address:'ул. Константина Иванова · жилой дом',point:building([628,344]),deadline:'16 окт, 12:00',description:'Житель сообщил о повреждении отделки фасада. Управляющая организация назначила обследование.',restriction:'У фасада огражден небольшой участок. Пожалуйста, используйте соседний проход.',owner:'Управляющая организация',source:'Проверенное обращение жителя',updated:'14 окт, 16:30'},
-    {id:'a2',layer:'above',type:'work',status:'work',icon:'light',title:'Восстановление освещения',short:'Ремонт освещения',address:'Московский проспект · пешеходная зона',point:snap('Московский проспект',[275,485]),deadline:'15 окт, 21:00',description:'Бригада проверяет линию питания и заменяет неисправные светильники вдоль пешеходной зоны.',restriction:'На части участка освещение временно работает не в полном объеме.',owner:'Служба наружного освещения',source:'Пример сообщения обслуживающей службы',updated:'14 окт, 17:25'},
-    {id:'a3',layer:'above',type:'work',status:'planned',icon:'home',title:'Плановый ремонт кровли',short:'Работы на кровле',address:'Московский район · жилой дом',point:building([377,664]),deadline:'18 окт, 18:00',description:'Управляющая организация планирует локальный ремонт кровли. Работы выполнят после подготовки безопасной зоны.',restriction:'На время ремонта участок у входа будет огражден. Основной вход останется открытым.',owner:'Управляющая организация',source:'Пример плана работ управляющей компании',updated:'14 окт, 14:50'}
+    {id:'u1',layer:'under',type:'outage',status:'planned',icon:'tap',title:'Отключение воды',short:'Отключение воды',address:'улица Эльгера · у улицы Мичмана Павлова',point:waterPoint,deadline:'18 окт, 18:00',description:'Запланировано отключение холодной воды для ремонта трубы. После работ восстановят дорожное покрытие.',restriction:'18 октября с 09:00 до 18:00 в соседних домах не будет холодной воды.',owner:'Аварийная бригада водоканала',source:'Демонстрационный план коммунальных работ',updated:'17 окт, 10:00',story:true},
+    {id:'u2',layer:'under',type:'work',status:'work',icon:'wrench',title:'Ремонт теплосети',short:'Ремонт теплосети',address:'улица Гузовского · жилой квартал',point:R.nearestUtilityPoint('улица Гузовского',D.landmarks.heat),deadline:'18 окт, 17:00',description:'Бригада заменяет участок теплосети. После проверки герметичности его подключат к системе.',restriction:'Участок огражден. Проход по соседнему тротуару открыт.',owner:'Теплоснабжающая организация',source:'Демонстрационный план коммунальных работ',updated:'17 окт, 10:15'},
+    {id:'g1',layer:'ground',type:'work',status:'planned',icon:'road',title:'Ремонт дороги',short:'Ремонт дороги',roadName:'улица Эльгера',address:'улица Эльгера · у улицы Мичмана Павлова',point:waterPoint,deadline:'19 окт, 18:00',description:'После ремонта трубы подрядчик засыплет траншею и восстановит асфальтовое покрытие.',restriction:'Во время ремонта участок проезда будет ограничен. Следуйте временным знакам.',owner:'Подрядчик по благоустройству',source:'Демонстрационный связанный этап работ',updated:'17 окт, 10:00',story:true},
+    {id:'g2',layer:'ground',type:'report',status:'work',icon:'snow',title:'Оледенение дороги',short:'Оледенение дороги',roadName:'Университетская улица',address:'Университетская улица · участок проезда',point:snap('Университетская улица',D.landmarks.sidewalk),deadline:'17 окт, 14:00',description:'На дороге образовалась наледь. Дорожная служба обрабатывает покрытие противогололедным материалом.',restriction:'Скользкий участок. Снизьте скорость и соблюдайте дистанцию.',owner:'Муниципальная дорожная служба',source:'Демонстрационное обращение жителя',updated:'17 окт, 10:20'},
+    {id:'a1',layer:'above',type:'report',status:'done',icon:'spray',title:'Граффити на фасаде здания',short:'Граффити на фасаде',address:'улица Эльгера · здание',point:building(D.landmarks.facade),deadline:'17 окт, 09:30',description:'Надпись на фасаде удалена, отделка восстановлена. В демонстрационном сценарии работы выполнены.',restriction:'Ограничения сняты. Проход вдоль фасада открыт.',owner:'Управляющая организация',source:'Демонстрационное обращение жителя',updated:'17 окт, 09:40'},
+    {id:'a2',layer:'above',type:'work',status:'work',icon:'light',title:'Ремонт освещения',short:'Ремонт освещения',address:'проспект Максима Горького · пешеходная зона',point:snap('проспект Максима Горького',D.landmarks.light),deadline:'17 окт, 21:00',description:'Бригада проверяет питание и заменяет неисправные светильники вдоль пешеходной зоны.',restriction:'На части участка освещение временно работает не в полном объеме.',owner:'Служба наружного освещения',source:'Демонстрационное сообщение службы',updated:'17 окт, 10:25'}
   ];
-  const statusText = {work:'В работе',planned:'Запланировано',confirmed:'Проверено'};
+  const statusText = {work:'В работе',planned:'Запланировано',done:'Выполнено'};
   const statusClass = event => `status-${R.eventColorCategory(event)}`;
   const typeText={report:'Обращение',work:'Работы',outage:'Отключение'};
   function read(key,fallback){try{const v=localStorage.getItem('gorod21:'+key);return v?JSON.parse(v):fallback;}catch{return fallback;}}
   function write(key,v){try{localStorage.setItem('gorod21:'+key,JSON.stringify(v));}catch{/* The current session remains usable when browser storage is disabled. */}}
   const loadedSaved=read('saved',[]),loadedReports=read('reports',[]),loadedHome=read('home',null);
-  const state={layer:'under',filter:'all',selected:null,saved:Array.isArray(loadedSaved)?loadedSaved.filter(x=>events.some(e=>e.id===x)):[],reports:Array.isArray(loadedReports)?loadedReports.filter(x=>x&&typeof x.description==='string'):[],home:loadedHome&&typeof loadedHome.address==='string'&&Array.isArray(loadedHome.point)?loadedHome:null,radius:500};
-  const map=new window.CityMap($('cityMap'),$('mapViewport'),events,openEvent);
+  const state={layer:'under',filter:'all',selected:null,saved:Array.isArray(loadedSaved)?loadedSaved.filter(x=>events.some(e=>e.id===x)):[],reports:Array.isArray(loadedReports)?loadedReports.filter(x=>x&&typeof x.description==='string'):[],home:restoreHome(loadedHome),radius:500};
+  if(state.home&&state.home!==loadedHome)write('home',state.home);
+  const map=new window.CityMap($('cityMap'),$('mapViewport'),events,showMapPopup);
   let toastTimeout;
+  let popupEventId=null;
   function toast(message){clearTimeout(toastTimeout);$('toast').querySelector('span').textContent=message;$('toast').classList.add('visible');toastTimeout=setTimeout(()=>$('toast').classList.remove('visible'),4300);}
   function openModal(id){const d=$(id);if(!d.open)d.showModal();}
   function closeModal(id){$(id).close();}
-  function isMobile(){return matchMedia('(max-width:760px)').matches;}
+  function uiScale(){return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ui-scale'))||1;}
+  function isMobile(){return matchMedia(`(max-width:${760*uiScale()}px)`).matches;}
   function setLayer(layer,keepDetail=false){
     if(!layers[layer])return;
+    closeMapPopup();
     state.layer=layer;state.filter='all';$('mapShell').dataset.layer=layer;
     for(const button of document.querySelectorAll('.layer-tab')){const selected=button.dataset.layer===layer;button.classList.toggle('selected',selected);button.setAttribute('aria-selected',String(selected));button.tabIndex=selected?0:-1;}
     const meta=layers[layer];$('layerDropdownLabel').textContent=meta.name;$('layerSwitcher').classList.remove('dropdown-open');$('layerDropdownToggle').setAttribute('aria-expanded','false');$('mapLayerTitle').textContent=meta.title;$('mapLayerDescription').textContent=meta.description;$('captionIcon').querySelector('use').setAttribute('href','#i-'+meta.icon);$('captionLevel').textContent=meta.level;$('listLayerName').textContent=meta.name;
@@ -45,7 +46,7 @@
     if(!keepDetail){state.selected=null;closeDetail();map.setSelected(events.find(e=>e.layer===layer)?.id||'');}
     updateFilterButtons();renderList();
   }
-  function updateFilterButtons(){for(const b of document.querySelectorAll('[data-filter]')){const selected=state.filter===b.dataset.filter;b.classList.toggle('selected',selected);b.setAttribute('aria-pressed',String(selected));}map.setFilter(state.filter);}
+  function updateFilterButtons(){closeMapPopup();for(const b of document.querySelectorAll('[data-filter]')){const selected=state.filter===b.dataset.filter;b.classList.toggle('selected',selected);b.setAttribute('aria-pressed',String(selected));}map.setFilter(state.filter);}
   function renderList(){
     const shown=events.filter(e=>e.layer===state.layer&&(state.filter==='all'||e.type===state.filter));
     $('eventCount').textContent=shown.length;
@@ -57,18 +58,66 @@
     state.selected=null;
   }
   function workStory(e){
-    return `<h4 class="story-title">Одна проблема — одна история<span>3 связанных этапа</span></h4><ol class="work-story"><li class="current"><span class="story-node">${icon('wrench')}</span><div><b>Ремонт трубы</b><small>Водоканал · выполняется</small>${e.id!=='u1'?'<button type="button" class="story-link inline-action" data-go-event="u1">Посмотреть на нижнем слое →</button>':''}</div></li><li class="current"><span class="story-node">${icon('cone')}</span><div><b>Раскопки и подготовка участка</b><small>Подрядчик · выполняется</small></div></li><li><span class="story-node"></span><div><b>Восстановление асфальта</b><small>Благоустройство · после ремонта трубы</small>${e.id!=='g1'?'<button type="button" class="story-link inline-action" data-go-event="g1">Посмотреть на среднем слое →</button>':''}</div></li></ol>`;
+    return `<h4 class="story-title">Одна проблема — одна история<span>3 связанных этапа</span></h4><ol class="work-story"><li><span class="story-node">${icon('wrench')}</span><div><b>Ремонт трубы</b><small>Водоканал · запланировано</small>${e.id!=='u1'?'<button type="button" class="story-link inline-action" data-go-event="u1">Посмотреть на нижнем слое →</button>':''}</div></li><li><span class="story-node">${icon('cone')}</span><div><b>Раскопки и подготовка участка</b><small>Подрядчик · запланировано</small></div></li><li><span class="story-node"></span><div><b>Восстановление асфальта</b><small>Благоустройство · после ремонта трубы</small>${e.id!=='g1'?'<button type="button" class="story-link inline-action" data-go-event="g1">Посмотреть на среднем слое →</button>':''}</div></li></ol>`;
   }
   function renderDetail(){
     const e=events.find(e=>e.id===state.selected);if(!e)return;
     const followed=state.saved.includes(e.id);
-    $('detailContent').innerHTML=`<button type="button" class="detail-back" id="detailBack">${icon('back')}Все события на слое</button><div class="detail-hero"><span class="event-symbol ${statusClass(e)}">${icon(e.icon)}</span><span class="status-pill ${statusClass(e)}">${statusText[e.status]}</span></div><h3>${escapeHTML(e.title)}</h3><div class="detail-address">${icon('pin')}<span>${escapeHTML(e.address)}</span></div><p class="detail-description">${escapeHTML(e.description)}</p><div class="restriction"><b>Ограничения для жителей</b>${escapeHTML(e.restriction)}</div><dl class="detail-facts"><div><dt>Плановый срок завершения</dt><dd>${escapeHTML(e.deadline)} · условно</dd></div><div><dt>Ответственная организация</dt><dd>${escapeHTML(e.owner)} · сведения не подтверждены</dd></div></dl>${e.story?workStory(e):''}<button type="button" class="follow-button ${followed?'followed':''}" id="followEvent" aria-pressed="${followed}">${icon(followed?'check':'bell')}${followed?'Вы следите за событием':'Следить за событием'}</button><div class="source-block"><b>Источник: ${escapeHTML(e.source)}</b>Обновлено: ${escapeHTML(e.updated)}<br>Событие и сроки не подтверждены городскими службами.</div>`;
+    const affected={u1:'Холодное водоснабжение соседних домов',u2:'Дома, подключённые к участку теплосети',g1:'Проезд на участке ремонтных работ',g2:'Участок дороги с наледью',a1:'Фасад здания',a2:'Освещение пешеходной зоны'};
+    const illustration={tap:'water',wrench:'heating',road:'road',spray:'graffiti',snow:'ice',light:'lighting'}[e.icon];
+    $('detailContent').innerHTML=`<button type="button" class="detail-back" id="detailBack">${icon('back')}Все события на слое</button>
+      <section class="scenario-summary" aria-label="Основная информация о событии">
+        <div class="scenario-heading">
+          <span class="scenario-illustration" aria-hidden="true">${illustration?`<img src="./assets/events/${illustration}.webp" width="256" height="256" alt="" decoding="async">`:icon(e.icon)}</span>
+          <div><h3>${escapeHTML(e.title)}</h3><div class="detail-address">${escapeHTML(e.address)}</div><span class="status-pill scenario-status ${statusClass(e)}"><i aria-hidden="true"></i>${statusText[e.status]}</span></div>
+        </div>
+        <dl class="scenario-facts">
+          <div><dt>${icon('home')}Затронуто</dt><dd>${escapeHTML(affected[e.id]||e.address)}</dd></div>
+          <div><dt>${icon('build')}Выполняет работы</dt><dd>${escapeHTML(e.owner)}</dd></div>
+          <div><dt>${icon('clock')}Плановое завершение</dt><dd>${escapeHTML(e.deadline)}</dd></div>
+        </dl>
+        <div class="scenario-provenance">
+          <div class="scenario-source">${icon('info')}<div><small>Источник информации</small><b>${escapeHTML(e.source)}</b></div></div>
+          <div class="scenario-source">${icon('clock')}<div><small>Обновлено</small><b>${escapeHTML(e.updated)}</b></div></div>
+        </div>
+      </section>
+      <div class="scenario-more"><h4>Подробности события</h4><p class="detail-description">${escapeHTML(e.description)}</p><div class="restriction"><b>Ограничения для жителей</b>${escapeHTML(e.restriction)}</div>${e.story?workStory(e):''}<button type="button" class="follow-button ${followed?'followed':''}" id="followEvent" aria-pressed="${followed}">${icon(followed?'check':'bell')}${followed?'Вы следите за событием':'Следить за событием'}</button><div class="source-block">Демонстрационный сценарий. Событие и сроки не подтверждены городскими службами. Сведения об организации не подтверждены; плановый срок указан условно.</div></div>`;
+  }
+  function closeMapPopup(restoreFocus=false){
+    const id=popupEventId;popupEventId=null;$('mapEventPopup').hidden=true;
+    if(restoreFocus&&id)map.markerNodes.find(node=>node.dataset.eventId===id)?.focus({preventScroll:true});
+  }
+  function positionMapPopup(){
+    if(!popupEventId||$('mapEventPopup').hidden)return;
+    const anchor=map.markerScreenPoint(popupEventId);if(!anchor)return;
+    const shell=$('mapShell').getBoundingClientRect(),popup=$('mapEventPopup');
+    const scale=uiScale();
+    const width=shell.width/scale||$('mapShell').clientWidth,height=shell.height/scale||$('mapShell').clientHeight;
+    if(!width||!height)return;
+    const rect=popup.getBoundingClientRect(),popupWidth=rect.width/scale||Math.min(324,width-24),popupHeight=rect.height/scale||Math.min(390,height-24);
+    const x=(anchor.x-shell.left)/scale,y=(anchor.y-shell.top)/scale;
+    const preferred=x+22+popupWidth<=width-12?x+22:x-popupWidth-22;
+    popup.style.left=Math.max(12,Math.min(preferred,width-popupWidth-12))+'px';
+    popup.style.top=Math.max(12,Math.min(y-popupHeight/2,height-popupHeight-12))+'px';
+  }
+  function showMapPopup(id){
+    const event=events.find(item=>item.id===id);if(!event)return;
+    closeDetail();popupEventId=id;map.setSelected(id);map.setFilter(state.filter);
+    const popup=$('mapEventPopup');popup.dataset.popupEvent=id;
+    popup.innerHTML=`<button type="button" class="map-popup-close" data-popup-close aria-label="Закрыть карточку">${icon('x')}</button><h3 id="mapPopupTitle">${escapeHTML(event.title)}</h3><span class="status-pill ${statusClass(event)}"><i aria-hidden="true"></i>${statusText[event.status]}</span><div class="map-popup-body"><dl class="map-popup-facts"><div><dt>${icon('build')}Ответственный</dt><dd>${escapeHTML(event.owner)}</dd></div><div><dt>${icon('calendar')}Плановый срок</dt><dd>${escapeHTML(event.deadline)}</dd></div><div><dt>${icon('database')}Источник данных</dt><dd>${escapeHTML(event.source)}</dd></div></dl><small class="map-popup-updated">Обновлено: ${escapeHTML(event.updated)} · демо</small></div><button type="button" class="map-popup-details" data-popup-details>Узнать подробнее</button>`;
+    popup.hidden=false;$('mapTip').hidden=true;positionMapPopup();
+    popup.querySelector('[data-popup-details]').focus({preventScroll:true});
+  }
+  function revealEventsPanel(){
+    document.querySelector('.workspace').classList.remove('desktop-panels-hidden');
+    const toggle=$('desktopPanelsToggle');toggle.setAttribute('aria-expanded','true');toggle.setAttribute('aria-label','Скрыть события');toggle.title='Скрыть события';
   }
   function openEvent(id){
+    closeMapPopup();
     const e=events.find(e=>e.id===id);if(!e)return;
     if(state.layer!==e.layer)setLayer(e.layer,true);
     state.filter='all';updateFilterButtons();renderList();state.selected=id;
-    map.setSelected(id);$('detailContent').hidden=false;$('panelContent').hidden=true;$('eventsPanel').classList.add('show-detail');renderDetail();
+    revealEventsPanel();map.setSelected(id);$('detailContent').hidden=false;$('panelContent').hidden=true;$('eventsPanel').classList.add('show-detail');renderDetail();
     $('mapTip').hidden=true;
     if(isMobile()){$('eventsPanel').classList.add('expanded');$('panelToggle').setAttribute('aria-expanded','true');}
   }
@@ -92,6 +141,12 @@
     const points=matched.flatMap(r=>r.p),center=R.center(points);
     let nearest=points[0];for(const p of points)if(R.dist(p,center)<R.dist(nearest,center))nearest=p;
     return {point:[...nearest],exact:false,name:matched[0].n};
+  }
+  function restoreHome(home){
+    if(!home||typeof home.address!=='string'||!Array.isArray(home.point))return null;
+    if(home.mapId===D.id)return home;
+    const location=locateAddress(home.address);
+    return location?{...home,point:location.point,mapId:D.id}:null;
   }
   function metersBetween(p,q){const b=D.bounds,mpp=(b[2]-b[0])*111320*Math.cos(56.15*Math.PI/180)/D.w;return R.dist(p,q)*mpp;}
   function updateHome(){
@@ -132,17 +187,18 @@
     $('activityBody').innerHTML=html;openModal('activityModal');
   }
   function updateScale(){
-    const width=$('mapViewport').getBoundingClientRect().width,svgWidth=isMobile()?width*1.6:width;
-    const cssPxPerUnit=Math.min(svgWidth/1200,$('mapViewport').getBoundingClientRect().height/880);
+    const scale=uiScale(),width=$('mapViewport').getBoundingClientRect().width/scale,svgWidth=isMobile()?width*1.6:width;
+    const cssPxPerUnit=Math.min(svgWidth/1200,$('mapViewport').getBoundingClientRect().height/scale/880);
     const b=D.bounds,mpp=(b[2]-b[0])*111320*Math.cos(56.15*Math.PI/180)/D.w;
     const targetPx=isMobile()?47:67;
-    const meters=targetPx/(cssPxPerUnit*.91*map.zoom)*mpp;
+    const meters=targetPx/(cssPxPerUnit*(D.projection?.scale||.91)*map.zoom)*mpp;
     const choices=[50,100,200,300,500,1000];
     const nearest=choices.reduce((best,x)=>Math.abs(x-meters)<Math.abs(best-meters)?x:best,choices[0]);
-    $('scaleLine').style.width=(nearest/mpp*cssPxPerUnit*.91*map.zoom)+'px';$('scaleLabel').textContent=nearest===1000?'1 км':nearest+' м';
-    $('zoomIn').disabled=map.zoom>=3.59;$('zoomOut').disabled=map.zoom<=.681;
+    $('scaleLine').style.width=(nearest/mpp*cssPxPerUnit*(D.projection?.scale||.91)*map.zoom)+'px';$('scaleLabel').textContent=nearest===1000?'1 км':nearest+' м';
+    $('zoomIn').disabled=map.zoom>=map.maxZoom-.01;$('zoomOut').disabled=map.zoom<=map.minZoom+.001;
   }
   function search(query){
+    if(isMobile()){$('layerSwitcher').classList.remove('dropdown-open');$('layerDropdownToggle').setAttribute('aria-expanded','false');closeMapPopup();}
     const results=$('searchResults'),q=query.trim().toLowerCase();
     if(q.length<2){results.hidden=true;return;}
     const eventQuery=q==='вода'?'вод':q;
@@ -150,14 +206,23 @@
     const streets=[...new Set(D.roads.map(r=>r.n).filter(Boolean))].filter(n=>normalizeStreet(n).includes(normalizeStreet(q))).slice(0,3);
     let html=match.map(e=>`<button type="button" data-search-event="${e.id}">${icon(e.icon)}<span>${escapeHTML(e.title)}<small>${escapeHTML(e.address)}</small></span></button>`).join('');
     html+=streets.map(n=>`<button type="button" data-search-street="${escapeHTML(n)}">${icon('pin')}<span>${escapeHTML(n)}<small>Улица на карте Чебоксар</small></span></button>`).join('');
-    results.innerHTML=html||'<div class="empty-search">В этой части города ничего не найдено. Попробуйте «Московский», «Иванова» или «вода».</div>';results.hidden=false;
+    results.innerHTML=html||'<div class="empty-search">В этой части города ничего не найдено. Попробуйте «Эльгера», «Гузовского» или «вода».</div>';results.hidden=false;
   }
+
+  $('mapEventPopup').addEventListener('click',event=>{
+    if(event.target.closest('[data-popup-close]'))closeMapPopup(true);
+    if(event.target.closest('[data-popup-details]')&&popupEventId){const id=popupEventId;openEvent(id);$('detailBack').focus({preventScroll:true});}
+  });
+  $('mapEventPopup').addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();closeMapPopup(true);}});
+  window.addEventListener('mapmove',positionMapPopup);
+  window.addEventListener('resize',positionMapPopup);
+  window.addEventListener('mapbackground',()=>closeMapPopup());
 
   document.querySelectorAll('.layer-tab').forEach(b=>{
     b.addEventListener('click',()=>setLayer(b.dataset.layer));
     b.addEventListener('keydown',e=>{if(!['ArrowUp','ArrowDown','Home','End'].includes(e.key))return;e.preventDefault();const tabs=[...document.querySelectorAll('.layer-tab')],i=tabs.indexOf(b),next=e.key==='Home'?0:e.key==='End'?tabs.length-1:(i+(e.key==='ArrowDown'?1:-1)+tabs.length)%tabs.length;setLayer(tabs[next].dataset.layer);tabs[next].focus();});
   });
-  $('layerDropdownToggle').addEventListener('click',()=>{const open=!$('layerSwitcher').classList.contains('dropdown-open');$('layerSwitcher').classList.toggle('dropdown-open',open);$('layerDropdownToggle').setAttribute('aria-expanded',String(open));});
+  $('layerDropdownToggle').addEventListener('click',()=>{const open=!$('layerSwitcher').classList.contains('dropdown-open');if(open&&isMobile()){$('searchResults').hidden=true;$('mapSearch').blur();closeMapPopup();}$('layerSwitcher').classList.toggle('dropdown-open',open);$('layerDropdownToggle').setAttribute('aria-expanded',String(open));});
   $('desktopPanelsToggle').addEventListener('click',()=>{const expanded=$('desktopPanelsToggle').getAttribute('aria-expanded')==='true',nextExpanded=!expanded;document.querySelector('.workspace').classList.toggle('desktop-panels-hidden',!nextExpanded);$('desktopPanelsToggle').setAttribute('aria-expanded',String(nextExpanded));$('desktopPanelsToggle').setAttribute('aria-label',nextExpanded?'Скрыть события':'Показать события');$('desktopPanelsToggle').title=nextExpanded?'Скрыть события':'Показать события';});
   document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>{state.filter=b.dataset.filter;updateFilterButtons();renderList();}));
   $('eventList').addEventListener('click',e=>{const b=e.target.closest('[data-open-event]');if(b)openEvent(b.dataset.openEvent);});
@@ -192,8 +257,8 @@
   $('homeAddress').addEventListener('input',()=>$('homeAddress').setCustomValidity(''));
   $('homeForm').addEventListener('submit',e=>{
     e.preventDefault();const address=$('homeAddress').value.trim(),location=locateAddress(address);
-    if(!location){$('homeAddress').setCustomValidity('Выберите улицу в центре Чебоксар, например Московский проспект.');$('homeAddress').reportValidity();return;}
-    state.home={address,radius:state.radius,point:location.point,exact:location.exact};write('home',state.home);closeModal('homeModal');updateHome();map.focus(location.point);toast(location.exact?'Адрес сохранен. Ваша зона показана на карте.':'Адрес сохранен. Дом отмечен приблизительно по улице.');
+    if(!location){$('homeAddress').setCustomValidity('Выберите улицу в выделенном районе, например улицу Эльгера.');$('homeAddress').reportValidity();return;}
+    state.home={address,radius:state.radius,point:location.point,exact:location.exact,mapId:D.id};write('home',state.home);closeModal('homeModal');updateHome();map.focus(location.point);toast(location.exact?'Адрес сохранен. Ваша зона показана на карте.':'Адрес сохранен. Дом отмечен приблизительно по улице.');
   });
   document.querySelectorAll('[data-radius]').forEach(b=>b.addEventListener('click',()=>{state.radius=Number(b.dataset.radius);for(const other of document.querySelectorAll('[data-radius]'))other.classList.toggle('selected',other===b);}));
   const streetNames=[...new Set(D.roads.map(r=>r.n).filter(Boolean))].sort();$('streetOptions').innerHTML=streetNames.map(n=>`<option value="${escapeHTML(n)}"></option>`).join('');
@@ -215,5 +280,5 @@
   renderList();updateHome();updateActivityIndicator();updateScale();
   if(read('hideTip',false))$('mapTip').hidden=true;
   $('dismissTip').addEventListener('click',()=>write('hideTip',true));
-  window.GOROD21_DATA={events,layers,version:'1.0',geographicSource:'OpenStreetMap',openEvent,setLayer,locateAddress};
+  window.GOROD21_DATA={events,layers,version:'2.0',geographicSource:'OpenStreetMap',openEvent,setLayer,locateAddress};
 })();
