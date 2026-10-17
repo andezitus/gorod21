@@ -19,6 +19,25 @@ const group = (svg, name) => (svg.match(new RegExp('<g class="' + name + '"[^>]*
 const paths = svg => svg.match(/<path\b[^>]*>/g) || [];
 const attr = (tag, name) => (tag.match(new RegExp('\\b' + name + '="([^"]*)"')) || [])[1];
 const plain = object => JSON.parse(JSON.stringify(object));
+function gestureMap() {
+  const {context}=load(),handlers={viewport:{},svg:{}},frames=new Map(),notifications=[],selected=[],rendered=[],captured=new Set(),classes=new Set();
+  let frameId=0;
+  context.CustomEvent=class {constructor(type){this.type=type;}};
+  context.window.addEventListener=()=>{};
+  context.window.dispatchEvent=event=>notifications.push(event.type);
+  context.window.requestAnimationFrame=callback=>{frames.set(++frameId,callback);return frameId;};
+  context.window.cancelAnimationFrame=id=>frames.delete(id);
+  const viewport={addEventListener:(type,callback)=>{handlers.viewport[type]=callback;},setPointerCapture:id=>captured.add(id),closest:()=>null,classList:{add:name=>classes.add(name),remove:name=>classes.delete(name)}};
+  const map=Object.create(context.window.CityMap.prototype);
+  Object.assign(map,{viewport,svg:{addEventListener:(type,callback)=>{handlers.svg[type]=callback;}},zoom:1,minZoom:.68,maxZoom:16,pan:[0,0],drag:null,didDrag:false,transformFrame:null,zoomEventPending:false});
+  map.svgPoint=event=>({x:event.clientX,y:event.clientY});map.select=id=>selected.push(id);
+  map.setTransform=()=>rendered.push({zoom:map.zoom,pan:[...map.pan]});map.bind();
+  const marker={dataset:{eventId:'u1'},closest(){return this;}};
+  const pointer=(type,id,x,y,target=viewport,pointerType='touch')=>handlers.viewport[type]({pointerId:id,clientX:x,clientY:y,button:0,target,pointerType});
+  const click=()=>handlers.svg.click({target:marker});
+  const flush=()=>{for(const [id,callback] of [...frames]){frames.delete(id);callback();}};
+  return {map,pointer,click,flush,frames,notifications,selected,rendered,captured,classes,marker,viewport};
+}
 const pointKey = point => point.map(n => Math.round(n * 100) / 100).join(',');
 function segments(roads) {
   const result = new Set();
@@ -155,6 +174,47 @@ test('rapid pointer updates share a frame and apply the latest map position', ()
   assert.equal(map.transformFrame,null);
   map.pan=[25,30];map.queueTransform();queue.shift()();
   assert.deepEqual(rendered,[[20,-20],[25,30]]);
+});
+
+test('two fingers zoom around their moving midpoint and share one render frame',()=>{
+  const g=gestureMap(),{map}=g;
+  const before=[(300-600-map.pan[0])/map.zoom,(200-438-map.pan[1])/map.zoom];
+  g.pointer('pointerdown',1,200,200);g.pointer('pointerdown',2,400,200);
+  g.pointer('pointermove',1,100,220);g.pointer('pointermove',2,500,220);
+  assert.equal(map.zoom,2);assert.equal(g.frames.size,1);assert.equal(g.rendered.length,0);
+  const after=[(300-600-map.pan[0])/map.zoom,(220-438-map.pan[1])/map.zoom];
+  assert.deepEqual(after,before);
+  g.flush();assert.equal(g.rendered.length,1);assert.equal(g.notifications.filter(type=>type==='mapzoom').length,1);
+  g.pointer('pointerup',1,100,220);g.pointer('lostpointercapture',1,100,220);
+  const pan=[...map.pan];g.pointer('pointermove',2,510,235);
+  assert.deepEqual(plain(map.pan),[pan[0]+10,pan[1]+15]);assert.equal(map.zoom,2);
+  g.pointer('pointerup',2,510,235);assert.equal(g.frames.size,0);assert.equal(map.drag,null);assert(!g.classes.has('dragging'));
+});
+
+test('pinching respects zoom limits, cancels cleanly and does not activate a marker',()=>{
+  const g=gestureMap(),{map}=g;map.zoom=15;map.pan=[10,-20];
+  g.pointer('pointerdown',1,100,100,g.marker);assert.equal(g.captured.size,0);
+  g.pointer('pointerdown',2,200,100,g.marker);assert.equal(g.captured.size,2);
+  g.pointer('lostpointercapture',1,100,100,g.marker);
+  g.pointer('pointermove',2,400,100);assert.equal(map.zoom,16);
+  g.pointer('pointermove',2,101,100);assert.equal(map.zoom,.68);
+  g.pointer('pointercancel',1,100,100);g.click();assert.equal(g.selected.length,0);
+  g.pointer('pointercancel',2,101,100);g.click();assert.equal(g.selected.length,0);
+  assert.equal(map.drag,null);assert.equal(g.frames.size,0);assert(!g.classes.has('dragging'));
+  g.pointer('pointermove',2,1000,1000);assert.equal(g.frames.size,0);
+  g.pointer('pointerdown',3,100,100,g.marker);g.pointer('pointerup',3,100,100,g.marker);g.click();assert.deepEqual(g.selected,['u1']);
+  g.pointer('pointerdown',4,100,100,g.marker,'mouse');g.pointer('pointerup',4,100,100,g.marker,'mouse');g.click();assert.deepEqual(g.selected,['u1','u1']);
+});
+
+test('a third finger can take over the pinch without a zoom or pan jump',()=>{
+  const g=gestureMap(),{map}=g;
+  g.pointer('pointerdown',1,100,200);g.pointer('pointerdown',2,200,200);g.pointer('pointerdown',3,300,200);
+  g.pointer('pointermove',3,320,200);assert.equal(g.frames.size,0);
+  g.pointer('pointerup',1,100,200);assert.equal(map.zoom,1);assert.deepEqual(plain(map.pan),[0,0]);
+  g.pointer('pointermove',3,440,200);assert.equal(map.zoom,2);
+  const pan=[...map.pan];g.pointer('pointerup',2,200,200);g.pointer('pointermove',3,450,220);
+  assert.equal(map.zoom,2);assert.deepEqual(plain(map.pan),[pan[0]+10,pan[1]+20]);
+  g.pointer('pointerup',3,450,220);g.click();assert.equal(g.selected.length,0);
 });
 
 test('island, soft forest boundary and all supplied street names survive 2D and 3D', () => {

@@ -479,8 +479,8 @@
 
   class CityMap {
     constructor(svg, viewport, events, select) {
-      this.svg=svg;this.viewport=viewport;this.events=events;this.select=select;this.layer='under';this.selected='u1';
-      this.minZoom=.68;this.maxZoom=16;this.zoom=1;this.pan=[0,0];this.flat=false;this.home=null;this.drag=null;this.didDrag=false;this.transformFrame=null;
+      this.svg=svg;this.viewport=viewport;this.events=events;this.select=select;this.layer='above';this.selected='a1';
+      this.minZoom=.68;this.maxZoom=16;this.zoom=1;this.pan=[0,0];this.flat=false;this.home=null;this.drag=null;this.didDrag=false;this.transformFrame=null;this.zoomEventPending=false;
       this.render();this.bind();
     }
     options(){return {flat:this.flat};}
@@ -516,9 +516,13 @@
       return {x:rect.left+(rect.width-W*scale)/2+(this.pan[0]+600+(Number(match[1])-600)*this.zoom)*scale,
         y:rect.top+(rect.height-H*scale)/2+(this.pan[1]+438+(Number(match[2])-438)*this.zoom)*scale-24*uiScale()};
     }
+    flushTransform(){
+      this.setTransform();
+      if(this.zoomEventPending){this.zoomEventPending=false;window.dispatchEvent(new CustomEvent('mapzoom'));}
+    }
     queueTransform(){
       if(this.transformFrame!==null)return;
-      this.transformFrame=window.requestAnimationFrame(()=>{this.transformFrame=null;this.setTransform();});
+      this.transformFrame=window.requestAnimationFrame(()=>{this.transformFrame=null;this.flushTransform();});
     }
     setLayer(layer){this.layer=layer;this.updateMarkers();}
     updateMarkers(){
@@ -554,11 +558,53 @@
     bind(){
       if(window.ResizeObserver){this.resizeObserver=new window.ResizeObserver(()=>this.updateMarkerScale());this.resizeObserver.observe(this.svg);}
       else window.addEventListener('resize',()=>this.updateMarkerScale());
-      this.viewport.addEventListener('pointerdown',e=>{if(e.button!==0||e.target.closest('[data-event-id]'))return;const p=this.svgPoint(e);this.drag={id:e.pointerId,start:[p.x,p.y],pan:[...this.pan]};this.didDrag=false;this.viewport.setPointerCapture(e.pointerId);});
-      this.viewport.addEventListener('pointermove',e=>{if(!this.drag||e.pointerId!==this.drag.id)return;const p=this.svgPoint(e);const dx=p.x-this.drag.start[0],dy=p.y-this.drag.start[1];if(Math.hypot(dx,dy)>3){this.didDrag=true;this.viewport.classList.add('dragging');}this.pan=[this.drag.pan[0]+dx,this.drag.pan[1]+dy];this.queueTransform();});
-      const end=()=>{this.drag=null;this.viewport.classList.remove('dragging');if(this.transformFrame!==null){window.cancelAnimationFrame(this.transformFrame);this.transformFrame=null;this.setTransform();}};
-      this.viewport.addEventListener('pointerup',end);this.viewport.addEventListener('pointercancel',end);this.viewport.addEventListener('lostpointercapture',end);
-      this.svg.addEventListener('click',e=>{const node=e.target.closest('[data-event-id]');if(!this.didDrag){if(node)this.select(node.dataset.eventId);else window.dispatchEvent(new CustomEvent('mapbackground'));}this.didDrag=false;});
+      const pointers=new Map();let pinch=null;
+      const startGesture=()=>{
+        const active=[...pointers.entries()];this.drag=null;pinch=null;
+        if(active.length>=2){
+          const [[aId,a],[bId,b]]=active;
+          pinch={ids:[aId,bId],distance:Math.max(1,Math.hypot(b.x-a.x,b.y-a.y)),center:[(a.x+b.x)/2,(a.y+b.y)/2],zoom:this.zoom,pan:[...this.pan]};
+          this.didDrag=true;this.viewport.classList.add('dragging');
+          for(const id of pinch.ids)this.viewport.setPointerCapture(id);
+        }else if(active.length===1){
+          const [id,p]=active[0];this.drag={id,start:[p.x,p.y],pan:[...this.pan]};
+        }else this.viewport.classList.remove('dragging');
+      };
+      this.viewport.addEventListener('pointerdown',e=>{
+        const marker=e.target.closest('[data-event-id]');
+        if(e.button!==0||(marker&&e.pointerType!=='touch'))return;
+        pointers.set(e.pointerId,this.svgPoint(e));
+        if(pointers.size===1)this.didDrag=false;
+        // A single tap on a marker keeps its original click target.
+        if(!marker)this.viewport.setPointerCapture(e.pointerId);
+        startGesture();
+      });
+      this.viewport.addEventListener('pointermove',e=>{
+        if(!pointers.has(e.pointerId))return;
+        const p=this.svgPoint(e);pointers.set(e.pointerId,p);
+        if(pinch){
+          if(!pinch.ids.includes(e.pointerId))return;
+          const [a,b]=pinch.ids.map(id=>pointers.get(id));
+          const center=[(a.x+b.x)/2,(a.y+b.y)/2];
+          const zoom=Math.max(this.minZoom,Math.min(this.maxZoom,pinch.zoom*Math.hypot(b.x-a.x,b.y-a.y)/pinch.distance));
+          const ratio=zoom/pinch.zoom;
+          this.zoomEventPending=this.zoomEventPending||zoom!==this.zoom;this.zoom=zoom;
+          this.pan=[center[0]-600-(pinch.center[0]-600-pinch.pan[0])*ratio,center[1]-438-(pinch.center[1]-438-pinch.pan[1])*ratio];
+        }else if(this.drag&&e.pointerId===this.drag.id){
+          const dx=p.x-this.drag.start[0],dy=p.y-this.drag.start[1];
+          if(Math.hypot(dx,dy)>3){this.didDrag=true;this.viewport.classList.add('dragging');}
+          this.pan=[this.drag.pan[0]+dx,this.drag.pan[1]+dy];
+        }else return;
+        this.queueTransform();
+      });
+      const end=e=>{
+        if(!pointers.delete(e.pointerId))return;
+        if(this.transformFrame!==null){window.cancelAnimationFrame(this.transformFrame);this.transformFrame=null;this.flushTransform();}
+        startGesture();
+      };
+      this.viewport.addEventListener('pointerup',end);this.viewport.addEventListener('pointercancel',end);
+      this.viewport.addEventListener('lostpointercapture',e=>{if(e.target===this.viewport)end(e);});
+      this.svg.addEventListener('click',e=>{if(pointers.size)return;const node=e.target.closest('[data-event-id]');if(!this.didDrag){if(node)this.select(node.dataset.eventId);else window.dispatchEvent(new CustomEvent('mapbackground'));}this.didDrag=false;});
       this.svg.addEventListener('keydown',e=>{const node=e.target.closest('[data-event-id]');if(node&&(e.key==='Enter'||e.key===' ')){e.preventDefault();this.select(node.dataset.eventId);}});
       this.viewport.addEventListener('wheel',e=>{e.preventDefault();const point=this.svgPoint(e);this.changeZoom(e.deltaY<0?1.12:1/1.12,[point.x,point.y]);window.dispatchEvent(new CustomEvent('mapzoom'));},{passive:false});
       this.viewport.addEventListener('keydown',e=>{if(e.target.closest('[data-event-id]'))return;const actions={ArrowLeft:[30,0],ArrowRight:[-30,0],ArrowUp:[0,30],ArrowDown:[0,-30]};if(actions[e.key]){e.preventDefault();this.pan[0]+=actions[e.key][0];this.pan[1]+=actions[e.key][1];this.setTransform();}else if(e.key==='+'||e.key==='='){e.preventDefault();this.changeZoom(1.2);window.dispatchEvent(new CustomEvent('mapzoom'));}else if(e.key==='-'){e.preventDefault();this.changeZoom(1/1.2);window.dispatchEvent(new CustomEvent('mapzoom'));}});

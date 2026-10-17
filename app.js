@@ -26,7 +26,7 @@
   function read(key,fallback){try{const v=localStorage.getItem('gorod21:'+key);return v?JSON.parse(v):fallback;}catch{return fallback;}}
   function write(key,v){try{localStorage.setItem('gorod21:'+key,JSON.stringify(v));}catch{/* The current session remains usable when browser storage is disabled. */}}
   const loadedSaved=read('saved',[]),loadedReports=read('reports',[]),loadedHome=read('home',null);
-  const state={layer:'under',filter:'all',selected:null,saved:Array.isArray(loadedSaved)?loadedSaved.filter(x=>events.some(e=>e.id===x)):[],reports:Array.isArray(loadedReports)?loadedReports.filter(x=>x&&typeof x.description==='string'):[],home:restoreHome(loadedHome),radius:500};
+  const state={layer:'above',filter:'all',selected:null,saved:Array.isArray(loadedSaved)?loadedSaved.filter(x=>events.some(e=>e.id===x)):[],reports:Array.isArray(loadedReports)?loadedReports.filter(x=>x&&typeof x.description==='string'):[],home:restoreHome(loadedHome),radius:500};
   if(state.home&&state.home!==loadedHome)write('home',state.home);
   const map=new window.CityMap($('cityMap'),$('mapViewport'),events,showMapPopup);
   let toastTimeout;
@@ -277,7 +277,7 @@
   });
   document.addEventListener('click',e=>{if(!e.target.closest('.map-search-wrap'))$('searchResults').hidden=true;});
   document.addEventListener('keydown',e=>{if(e.key==='/'&&!document.querySelector('dialog[open]')&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)){e.preventDefault();$('mapSearch').focus();}});
-  renderList();updateHome();updateActivityIndicator();updateScale();
+  setLayer(state.layer);updateHome();updateActivityIndicator();updateScale();
   if(read('hideTip',false))$('mapTip').hidden=true;
   $('dismissTip').addEventListener('click',()=>write('hideTip',true));
   window.GOROD21_DATA={events,layers,version:'2.0',geographicSource:'OpenStreetMap',openEvent,setLayer,locateAddress};

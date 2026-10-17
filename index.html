@@ -84,9 +84,9 @@
       </section>
 
       <section class="workspace" aria-label="Интерактивная карта Чебоксар">
-        <div class="map-shell" id="mapShell" data-layer="under">
+        <div class="map-shell" id="mapShell" data-layer="above">
           <div class="map-grain"></div>
-          <div class="map-viewport" id="mapViewport" tabindex="0" aria-label="Трехмерная карта. Перетаскивайте для перемещения, используйте плюс и минус для масштаба. Стрелки перемещают карту.">
+          <div class="map-viewport" id="mapViewport" tabindex="0" aria-label="Трехмерная карта. Перетаскивайте для перемещения, сведите или разведите два пальца для масштаба либо используйте плюс и минус. Стрелки перемещают карту.">
             <svg id="cityMap" viewBox="0 0 1200 880" role="img" aria-label="Объемная карта Чебоксар с лесом, улицами и зданиями"><title>Карта Чебоксар в трех слоях</title></svg>
           </div>
           <div class="map-vignette"></div>
@@ -94,18 +94,18 @@
 
           <div class="layer-switcher" id="layerSwitcher">
             <div class="control-caption"><svg class="icon"><use href="#i-layers"/></svg>Слои города<span class="small-counter">3</span></div>
-            <button class="mobile-layer-toggle" type="button" id="layerDropdownToggle" aria-label="Выбрать слой карты" aria-expanded="false" aria-controls="layerTabs"><span id="layerDropdownLabel">Под землей</span><svg class="icon"><use href="#i-chevron"/></svg></button>
+            <button class="mobile-layer-toggle" type="button" id="layerDropdownToggle" aria-label="Выбрать слой карты" aria-expanded="false" aria-controls="layerTabs"><span id="layerDropdownLabel">Над землей</span><svg class="icon"><use href="#i-chevron"/></svg></button>
             <div class="layer-tabs" id="layerTabs" role="tablist" aria-label="Уровень города" aria-orientation="vertical">
-              <button type="button" class="layer-tab" data-layer="above" role="tab" id="tab-above" aria-controls="mapViewport" aria-selected="false" tabindex="-1"><span class="layer-thumbnail above-thumb"><span></span><span></span><span></span></span><span><b>Над землей</b><small>Дома и освещение</small></span><span class="layer-radio"></span></button>
+              <button type="button" class="layer-tab selected" data-layer="above" role="tab" id="tab-above" aria-controls="mapViewport" aria-selected="true" tabindex="0"><span class="layer-thumbnail above-thumb"><span></span><span></span><span></span></span><span><b>Над землей</b><small>Дома и освещение</small></span><span class="layer-radio"></span></button>
               <button type="button" class="layer-tab" data-layer="ground" role="tab" id="tab-ground" aria-controls="mapViewport" aria-selected="false" tabindex="-1"><span class="layer-thumbnail ground-thumb"><span></span><span></span><span></span></span><span><b>На земле</b><small>Дороги и дворы</small></span><span class="layer-radio"></span></button>
-              <button type="button" class="layer-tab selected" data-layer="under" role="tab" id="tab-under" aria-controls="mapViewport" aria-selected="true" tabindex="0"><span class="layer-thumbnail under-thumb"><span></span><span></span><span></span></span><span><b>Под землей</b><small>Вода и теплосети</small></span><span class="layer-radio"></span></button>
+              <button type="button" class="layer-tab" data-layer="under" role="tab" id="tab-under" aria-controls="mapViewport" aria-selected="false" tabindex="-1"><span class="layer-thumbnail under-thumb"><span></span><span></span><span></span></span><span><b>Под землей</b><small>Вода и теплосети</small></span><span class="layer-radio"></span></button>
             </div>
           </div>
 
           <div class="map-search-wrap"><div class="map-search"><svg class="icon"><use href="#i-search"/></svg><input id="mapSearch" type="search" placeholder="Адрес или событие" autocomplete="off" aria-label="Поиск адреса или события"><span class="search-shortcut">/</span></div><button class="desktop-panels-toggle" type="button" id="desktopPanelsToggle" aria-controls="eventsPanel" aria-expanded="true" aria-label="Скрыть события" title="Скрыть события"><svg class="icon"><use href="#i-back"/></svg></button><div class="search-results" id="searchResults" hidden></div></div>
           <div class="map-toolbar" aria-label="Управление картой"><button type="button" id="zoomIn" aria-label="Приблизить" title="Приблизить"><svg class="icon"><use href="#i-plus"/></svg></button><button type="button" id="zoomOut" aria-label="Отдалить" title="Отдалить"><svg class="icon"><use href="#i-minus"/></svg></button><span></span><button type="button" id="resetMap" aria-label="Вернуть обзор города" title="Вернуть обзор города"><svg class="icon"><use href="#i-target"/></svg></button><button type="button" id="viewMode" class="view-mode" aria-label="Переключить на плоскую карту" aria-pressed="false">3D</button></div>
 
-          <div class="map-layer-caption"><span class="layer-caption-icon"><svg class="icon" id="captionIcon"><use href="#i-drop"/></svg></span><div><b id="mapLayerTitle">Под поверхностью города</b><span id="mapLayerDescription">Водопровод, теплосети и канализация</span></div><span class="caption-line"></span><span class="caption-level" id="captionLevel">−1</span></div>
+          <div class="map-layer-caption"><span class="layer-caption-icon"><svg class="icon" id="captionIcon"><use href="#i-build"/></svg></span><div><b id="mapLayerTitle">Город над поверхностью</b><span id="mapLayerDescription">Фасады, освещение и воздушные линии</span></div><span class="caption-line"></span><span class="caption-level" id="captionLevel">+1</span></div>
           <div class="map-legend"><span><i class="legend-dot outage"></i>Запланировано</span><span><i class="legend-dot active"></i>В работе</span><span><i class="legend-dot confirmed"></i>Выполнено</span></div>
           <div class="map-scale"><span id="scaleLine"></span><small id="scaleLabel">500 м</small></div>
           <div class="map-attribution"><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap</a><span>Сети — демонстрационные</span></div>
@@ -114,10 +114,10 @@
 
         <aside class="events-panel" id="eventsPanel" aria-label="События на карте">
           <div class="mobile-district-label"><svg class="icon"><use href="#i-pin"/></svg>Чебоксары</div>
-          <div class="panel-heading"><div><span class="eyebrow">ЧТО ПРОИСХОДИТ</span><h2>События рядом <span id="eventCount">3</span></h2></div><button class="icon-button mobile-panel-toggle" type="button" id="panelToggle" aria-expanded="false" aria-label="Развернуть список событий"><svg class="icon"><use href="#i-chevron"/></svg></button></div>
+          <div class="panel-heading"><div><span class="eyebrow">ЧТО ПРОИСХОДИТ</span><h2>События рядом <span id="eventCount">2</span></h2></div><button class="icon-button mobile-panel-toggle" type="button" id="panelToggle" aria-expanded="false" aria-label="Развернуть список событий"><svg class="icon"><use href="#i-chevron"/></svg></button></div>
           <div class="panel-content" id="panelContent">
             <div class="panel-filter" role="group" aria-label="Фильтр событий"><button type="button" class="selected" data-filter="all" aria-pressed="true">Все</button><button type="button" data-filter="work" aria-pressed="false">Работы</button><button type="button" data-filter="outage" aria-pressed="false">Отключения</button><button type="button" data-filter="report" aria-pressed="false">Обращения</button></div>
-            <div class="layer-events-label"><span id="listLayerName">Под землей</span><span class="events-updated"><i></i>Условные сведения</span></div>
+            <div class="layer-events-label"><span id="listLayerName">Над землей</span><span class="events-updated"><i></i>Условные сведения</span></div>
             <div class="event-list" id="eventList"></div>
             <div class="home-prompt"><div class="home-prompt-icon"><svg class="icon"><use href="#i-home"/></svg></div><h3>Ваш дом — в центре внимания</h3><p>Следите за работами и отключениями рядом с вашим адресом.</p><button type="button" id="setupHomeBtn">Добавить мой дом<svg class="icon"><use href="#i-arrow"/></svg></button></div>
             <div class="panel-footer"><svg class="icon"><use href="#i-shield"/></svg><span>Сообщения жителей проходят проверку</span></div>
