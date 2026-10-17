@@ -213,3 +213,6 @@ html{zoom:var(--ui-scale);min-height:calc(100dvh / var(--ui-scale))}
   .panel-heading h2{margin:0}
   .map-scale{display:none}
 }
+
+/* Only markers belonging to the visible layer may appear, including first paint. */
+.map-shell[data-layer="above"] .city-marker:not([data-marker-layer="above"]),.map-shell[data-layer="ground"] .city-marker:not([data-marker-layer="ground"]),.map-shell[data-layer="under"] .city-marker:not([data-marker-layer="under"]){display:none!important}

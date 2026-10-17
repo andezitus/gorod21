@@ -479,7 +479,7 @@
 
   class CityMap {
     constructor(svg, viewport, events, select) {
-      this.svg=svg;this.viewport=viewport;this.events=events;this.select=select;this.layer='above';this.selected='a1';
+      this.svg=svg;this.viewport=viewport;this.events=events;this.select=select;this.layer='above';this.filter='all';this.selected='a1';
       this.minZoom=.68;this.maxZoom=16;this.zoom=1;this.pan=[0,0];this.flat=false;this.home=null;this.drag=null;this.didDrag=false;this.transformFrame=null;this.zoomEventPending=false;
       this.render();this.bind();
     }
@@ -524,16 +524,17 @@
       if(this.transformFrame!==null)return;
       this.transformFrame=window.requestAnimationFrame(()=>{this.transformFrame=null;this.flushTransform();});
     }
-    setLayer(layer){this.layer=layer;this.updateMarkers();}
+    setLayer(layer){this.layer=layer;this.filter='all';this.updateMarkers();}
     updateMarkers(){
       for(const node of this.markerNodes){
-        const show=node.dataset.markerLayer===this.layer;
+        const event=this.eventsById.get(node.dataset.eventId);
+        const show=event?.layer===this.layer&&(!this.filter||this.filter==='all'||event.type===this.filter);
         node.style.display=show?'':'none';node.setAttribute('aria-hidden',String(!show));node.setAttribute('tabindex',show?'0':'-1');
         node.classList.toggle('selected',node.dataset.eventId===this.selected);
       }
     }
     setSelected(id){this.selected=id;this.updateMarkers();}
-    setFilter(type){for(const node of this.markerNodes){const e=this.eventsById.get(node.dataset.eventId);const show=e.layer===this.layer&&(type==='all'||e.type===type);node.style.display=show?'':'none';node.setAttribute('aria-hidden',String(!show));node.setAttribute('tabindex',show?'0':'-1');}}
+    setFilter(type){this.filter=type;this.updateMarkers();}
     changeZoom(factor,anchor=[600,438]){
       const previous=this.zoom;
       this.zoom=Math.max(this.minZoom,Math.min(this.maxZoom,this.zoom*factor));
@@ -558,19 +559,20 @@
     bind(){
       if(window.ResizeObserver){this.resizeObserver=new window.ResizeObserver(()=>this.updateMarkerScale());this.resizeObserver.observe(this.svg);}
       else window.addEventListener('resize',()=>this.updateMarkerScale());
-      const pointers=new Map();let pinch=null;
+      const pointers=new Map(),nativeTouch='ontouchstart' in window;let pinch=null,suppressTouchClickUntil=0,tapTarget=null;
       const startGesture=()=>{
         const active=[...pointers.entries()];this.drag=null;pinch=null;
         if(active.length>=2){
           const [[aId,a],[bId,b]]=active;
           pinch={ids:[aId,bId],distance:Math.max(1,Math.hypot(b.x-a.x,b.y-a.y)),center:[(a.x+b.x)/2,(a.y+b.y)/2],zoom:this.zoom,pan:[...this.pan]};
           this.didDrag=true;this.viewport.classList.add('dragging');
-          for(const id of pinch.ids)this.viewport.setPointerCapture(id);
+          if(!nativeTouch)for(const id of pinch.ids)this.viewport.setPointerCapture(id);
         }else if(active.length===1){
           const [id,p]=active[0];this.drag={id,start:[p.x,p.y],pan:[...this.pan]};
         }else this.viewport.classList.remove('dragging');
       };
       this.viewport.addEventListener('pointerdown',e=>{
+        if(nativeTouch&&e.pointerType==='touch')return;
         const marker=e.target.closest('[data-event-id]');
         if(e.button!==0||(marker&&e.pointerType!=='touch'))return;
         pointers.set(e.pointerId,this.svgPoint(e));
@@ -579,32 +581,67 @@
         if(!marker)this.viewport.setPointerCapture(e.pointerId);
         startGesture();
       });
-      this.viewport.addEventListener('pointermove',e=>{
-        if(!pointers.has(e.pointerId))return;
-        const p=this.svgPoint(e);pointers.set(e.pointerId,p);
+      const moveGesture=()=>{
         if(pinch){
-          if(!pinch.ids.includes(e.pointerId))return;
           const [a,b]=pinch.ids.map(id=>pointers.get(id));
           const center=[(a.x+b.x)/2,(a.y+b.y)/2];
           const zoom=Math.max(this.minZoom,Math.min(this.maxZoom,pinch.zoom*Math.hypot(b.x-a.x,b.y-a.y)/pinch.distance));
           const ratio=zoom/pinch.zoom;
           this.zoomEventPending=this.zoomEventPending||zoom!==this.zoom;this.zoom=zoom;
           this.pan=[center[0]-600-(pinch.center[0]-600-pinch.pan[0])*ratio,center[1]-438-(pinch.center[1]-438-pinch.pan[1])*ratio];
-        }else if(this.drag&&e.pointerId===this.drag.id){
+        }else if(this.drag){
+          const p=pointers.get(this.drag.id);if(!p)return;
           const dx=p.x-this.drag.start[0],dy=p.y-this.drag.start[1];
           if(Math.hypot(dx,dy)>3){this.didDrag=true;this.viewport.classList.add('dragging');}
           this.pan=[this.drag.pan[0]+dx,this.drag.pan[1]+dy];
         }else return;
         this.queueTransform();
+      };
+      this.viewport.addEventListener('pointermove',e=>{
+        if(nativeTouch&&e.pointerType==='touch'||!pointers.has(e.pointerId))return;
+        pointers.set(e.pointerId,this.svgPoint(e));
+        if(pinch&&!pinch.ids.includes(e.pointerId))return;
+        moveGesture();
       });
-      const end=e=>{
-        if(!pointers.delete(e.pointerId))return;
+      const finishFrame=()=>{
         if(this.transformFrame!==null){window.cancelAnimationFrame(this.transformFrame);this.transformFrame=null;this.flushTransform();}
+      };
+      const end=e=>{
+        if(nativeTouch&&e.pointerType==='touch')return;
+        if(!pointers.delete(e.pointerId))return;
+        finishFrame();
         startGesture();
       };
       this.viewport.addEventListener('pointerup',end);this.viewport.addEventListener('pointercancel',end);
       this.viewport.addEventListener('lostpointercapture',e=>{if(e.target===this.viewport)end(e);});
-      this.svg.addEventListener('click',e=>{if(pointers.size)return;const node=e.target.closest('[data-event-id]');if(!this.didDrag){if(node)this.select(node.dataset.eventId);else window.dispatchEvent(new CustomEvent('mapbackground'));}this.didDrag=false;});
+      // Touch Events provide a non-passive path on mobile Safari and Android.
+      // Read both fingers together, so simultaneous movement does not shift the anchor.
+      if(nativeTouch){
+        this.viewport.addEventListener('touchstart',e=>{
+          if(!pointers.size){this.didDrag=false;tapTarget=e.target;}
+          for(const touch of e.changedTouches)pointers.set(touch.identifier,this.svgPoint(touch));
+          e.preventDefault();suppressTouchClickUntil=Date.now()+700;startGesture();
+        },{passive:false});
+        this.viewport.addEventListener('touchmove',e=>{
+          if(!pointers.size)return;
+          for(const touch of e.touches)if(pointers.has(touch.identifier))pointers.set(touch.identifier,this.svgPoint(touch));
+          e.preventDefault();moveGesture();
+        },{passive:false});
+        const endTouch=e=>{
+          if(!pointers.size)return;
+          for(const touch of e.changedTouches)pointers.delete(touch.identifier);
+          e.preventDefault();suppressTouchClickUntil=Date.now()+700;finishFrame();
+          if(!pointers.size&&!this.didDrag&&e.type!=='touchcancel'){
+            const node=tapTarget?.closest('[data-event-id]');
+            if(node)this.select(node.dataset.eventId);else window.dispatchEvent(new CustomEvent('mapbackground'));
+          }
+          if(e.type==='touchcancel')this.didDrag=true;
+          startGesture();
+        };
+        this.viewport.addEventListener('touchend',endTouch,{passive:false});
+        this.viewport.addEventListener('touchcancel',endTouch,{passive:false});
+      }
+      this.svg.addEventListener('click',e=>{if(pointers.size||(e.detail!==0&&Date.now()<suppressTouchClickUntil))return;const node=e.target.closest('[data-event-id]');if(!this.didDrag){if(node)this.select(node.dataset.eventId);else window.dispatchEvent(new CustomEvent('mapbackground'));}this.didDrag=false;});
       this.svg.addEventListener('keydown',e=>{const node=e.target.closest('[data-event-id]');if(node&&(e.key==='Enter'||e.key===' ')){e.preventDefault();this.select(node.dataset.eventId);}});
       this.viewport.addEventListener('wheel',e=>{e.preventDefault();const point=this.svgPoint(e);this.changeZoom(e.deltaY<0?1.12:1/1.12,[point.x,point.y]);window.dispatchEvent(new CustomEvent('mapzoom'));},{passive:false});
       this.viewport.addEventListener('keydown',e=>{if(e.target.closest('[data-event-id]'))return;const actions={ArrowLeft:[30,0],ArrowRight:[-30,0],ArrowUp:[0,30],ArrowDown:[0,-30]};if(actions[e.key]){e.preventDefault();this.pan[0]+=actions[e.key][0];this.pan[1]+=actions[e.key][1];this.setTransform();}else if(e.key==='+'||e.key==='='){e.preventDefault();this.changeZoom(1.2);window.dispatchEvent(new CustomEvent('mapzoom'));}else if(e.key==='-'){e.preventDefault();this.changeZoom(1/1.2);window.dispatchEvent(new CustomEvent('mapzoom'));}});
