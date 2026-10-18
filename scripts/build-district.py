@@ -7,6 +7,7 @@ from scipy import ndimage
 from shapely.geometry import Polygon,LineString,Point,MultiPoint,mapping
 from shapely.ops import unary_union,linemerge,nearest_points,polygonize
 import xml.etree.ElementTree as ET
+from utility_network import clean_branches
 
 parser=argparse.ArgumentParser()
 parser.add_argument('--osm',required=True);parser.add_argument('--reference',required=True)
@@ -238,8 +239,6 @@ for line in pieces(branch_geometry.intersection(raw_boundary),'LineString'):
  branches.append({'id':'feed-'+str(len(branches)),'p':[norm(p) for p in line.coords],'root':norm(roots[edge_index])})
 trees=[]
 soft=[]
-for distance,opacity in [(18,.05),(13,.08),(9,.13),(5,.20),(2,.34),(0,.85)]:
- soft.append({'p':poly_points(island.buffer(distance,resolution=4).simplify(1.2)),'opacity':opacity})
 geo_sw=to_geo((x0,y1));geo_ne=to_geo((x1,y0))
 landmarks={name:norm(p) for name,p in {'water':(432,370),'heat':(614,175),'outage':(345,40),'yard':(320,280),'sidewalk':(145,330),'facade':(505,290),'light':(570,40),'roof':(330,193)}.items()}
 # The utility main follows the full University Street axis. Its source corridor
@@ -264,8 +263,10 @@ for road in roads:
  if not line.intersects(grove):continue
  road['visibleP']=[[[round(x,2),round(y,2)] for x,y in part.coords] for part in pieces(line.difference(grove.buffer(.75)),'LineString') if part.length>.1]
 data={'id':'cheboksary-island-v3','name':'Чебоксары','bounds':[geo_sw[0],geo_sw[1],geo_ne[0],geo_ne[1]],'mercator':True,'w':W,'h':round(H,2),'projection':{'angle':-18,'scale':.8,'vertical':.57,'flatVertical':.78},'buildings':buildings,'roads':roads,'parks':parks,'water':water,'district':poly_points(district),'urbanBoundary':poly_points(urban),'cityBoundary':[[round(x,2),round(y,2)] for x,y in list(city_boundary.exterior.coords)[:-1]],'forestAreas':forest_areas,'groveBoundary':[[round(x,2),round(y,2)] for x,y in list(grove.exterior.coords)[:-1]],'island':poly_points(island),'coast':soft,'trees':trees,'streetLabels':labels,'areaLabels':[{'p':norm((426,530)),'t':'Роща Гузовского','size':10}],'landmarks':landmarks,'networkBoundary':poly_points(network_boundary),'network':{'routes':network,'branches':branches,'houseConnections':house_connections,'illustrative':True},'source':{'name':'OpenStreetMap','url':'https://api.openstreetmap.org/api/0.6/map?bbox=47.155,56.13,47.205,56.16','date':'2026-10-17','selection':'User-provided red perimeter; OSM zoom 15, Elgera/Gorkogo control point','license':'ODbL-1.0'}}
+data['network']=clean_branches(data['network'],buildings)
+data['coast']=[]
 out.mkdir(parents=True,exist_ok=True)
 (out/'city-data.js').write_text('window.CITY_DATA='+json.dumps(data,ensure_ascii=False,separators=(',',':'))+';\n')
 (out/'data').mkdir(exist_ok=True)
 (out/'data/district-boundary.geojson').write_text(json.dumps({'type':'Feature','properties':{'name':data['name'],'source':'User red outline georeferenced to OpenStreetMap'},'geometry':{'type':'Polygon','coordinates':[[to_geo(c) for c in district.exterior.coords]]}},ensure_ascii=False,indent=2))
-print(json.dumps({'buildings':len(buildings),'roads':len(roads),'parks':len(parks),'pipes':len(network),'branches':len(branches),'connectedHouses':len(house_connections),'trees':0,'streetLabels':[l['t'] for l in labels],'world':[W,round(H)],'selectionPixels':district.bounds,'bounds':data['bounds'],'bytes':(out/'city-data.js').stat().st_size},ensure_ascii=False,indent=2))
+print(json.dumps({'buildings':len(buildings),'roads':len(roads),'parks':len(parks),'pipes':len(network),'branches':len(data['network']['branches']),'connectedHouses':len(data['network']['houseConnections']),'trees':0,'streetLabels':[l['t'] for l in labels],'world':[W,round(H)],'selectionPixels':district.bounds,'bounds':data['bounds'],'bytes':(out/'city-data.js').stat().st_size},ensure_ascii=False,indent=2))

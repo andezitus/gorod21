@@ -44,3 +44,27 @@ print('Passed: grove paths suppressed without removing source roads.')
 university=LineString(next(label['p'] for label in data['streetLabels'] if label['t']=='Университетская улица'))
 assert university.difference(mains.buffer(.025)).length<.025
 print('Passed: University Street main has no missing interval and fits the utility clip.')
+
+# Every feed ends at a house or a main, and every component serves houses.
+from collections import defaultdict,deque
+adjacency=defaultdict(list)
+for index,branch in enumerate(data['network']['branches']):
+ a,b=tuple(branch['p'][0]),tuple(branch['p'][-1])
+ adjacency[a].append((b,index));adjacency[b].append((a,index))
+terminals={tuple(c['p']) for c in data['network']['houseConnections']}
+sources={node for node in adjacency if mains.distance(Point(node))<.04}
+for node,incident in adjacency.items():
+ if len(incident)==1:assert node in terminals or node in sources,('empty feed endpoint',node)
+visited=set()
+for first in adjacency:
+ if first in visited:continue
+ component={first};queue=deque([first])
+ while queue:
+  for neighbor,_ in adjacency[queue.popleft()]:
+   if neighbor not in component:component.add(neighbor);queue.append(neighbor)
+ assert component&sources,('feed detached from main',first)
+ assert component&terminals,('feed serves no house',first)
+ visited.update(component)
+assert terminals.issubset(visited)
+assert not data['coast']
+print('Passed: no empty feed endpoints; all 170 house connections reach a main; no green edge halo.')

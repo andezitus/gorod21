@@ -19,7 +19,13 @@ function measure(source) {
     svg = context.window.GorodMapRenderer.drawScene({},context.window.benchmarkEvents,'u1');
     samples.push(performance.now()-start);
   }
-  const group = name => (svg.match(new RegExp('<g class="'+name+'"[^>]*>([\\s\\S]*?)<\\/g>'))||[])[1]||'';
+  const group = name => {
+    const start=new RegExp('<g class="'+name+'"[^>]*>').exec(svg);if(!start)return '';
+    const content=start.index+start[0].length,tags=/<\/?g\b[^>]*>/g;tags.lastIndex=content;
+    let depth=1,tag;
+    while((tag=tags.exec(svg))){depth+=tag[0].startsWith('</')?-1:1;if(!depth)return svg.slice(content,tag.index);}
+    return '';
+  };
   const paths = s => (s.match(/<path\b/g)||[]).length;
   return {
     firstDrawMs:+samples[0].toFixed(2),

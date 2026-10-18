@@ -7,11 +7,11 @@
   <meta name="description" content="Город 21 — интерактивная карта Чебоксар в трех слоях. Городские работы, отключения и сообщения жителей на одной карте.">
   <title>Город 21 — Чебоксары в трех слоях</title>
   <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./assets/fonts.css?v=20261017-touch2">
-  <link rel="stylesheet" href="./styles.css?v=20261017-touch2">
-  <script src="./city-data.js?v=20261017-touch2" defer></script>
-  <script src="./map.js?v=20261017-touch2" defer></script>
-  <script src="./app.js?v=20261017-touch2" defer></script>
+  <link rel="stylesheet" href="./assets/fonts.css?v=20261018-polish-feeds">
+  <link rel="stylesheet" href="./styles.css?v=20261018-polish-feeds">
+  <script src="./city-data.js?v=20261018-polish-feeds" defer></script>
+  <script src="./map.js?v=20261018-polish-feeds" defer></script>
+  <script src="./app.js?v=20261018-polish-feeds" defer></script>
 </head>
 <body>
   <svg class="svg-library" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
@@ -169,12 +169,45 @@
   </dialog>
 
   <dialog class="modal wide-modal" id="aboutModal" aria-labelledby="aboutTitle">
-    <div class="modal-header"><span class="modal-icon"><svg class="icon"><use href="#i-layers"/></svg></span><button type="button" class="icon-button" data-close aria-label="Закрыть"><svg class="icon"><use href="#i-x"/></svg></button></div>
+    <div class="about-header">
+      <div class="about-brand"><svg viewBox="0 0 42 44" aria-hidden="true"><path d="m21 23 18 9-18 9-18-9Z" fill="#b3d8ff"/><path d="m21 13 18 9-18 9-18-9Z" fill="#6fabff"/><path d="m21 3 18 9-18 9L3 12Z" fill="#2476ed"/></svg><div><span>Город <b>21</b></span><p>Один город — три уровня</p></div></div>
+      <button type="button" class="icon-button" data-close aria-label="Закрыть раздел о проекте"><svg class="icon"><use href="#i-x"/></svg></button>
+    </div>
     <span class="eyebrow">О ПРОЕКТЕ</span>
-    <h2 id="aboutTitle">Один город. Одна понятная карта.</h2>
-    <p class="modal-lead">«Город 21» объединяет информацию о городских проблемах, работах и отключениях.</p>
-    <div class="about-levels"><div><svg class="icon"><use href="#i-build"/></svg><b>Над землей</b><p>Фасады, освещение и воздушные линии</p></div><div><svg class="icon"><use href="#i-road"/></svg><b>На земле</b><p>Дороги, дворы, тротуары и благоустройство</p></div><div><svg class="icon"><use href="#i-drop"/></svg><b>Под землей</b><p>Водопровод, теплосети и канализация</p></div></div>
-    <p class="about-text">Геометрия улиц и зданий получена из OpenStreetMap. Сведения о событиях, инженерных сетях и сроках условные и не подтверждены городскими службами.</p>
+    <h2 id="aboutTitle">Понятно, что происходит рядом</h2>
+    <p class="modal-lead">«Город 21» — проект для жителей Чувашской Республики. Он собирает городские проблемы, ремонтные работы и отключения на одной карте. Предлагаемый пилот — один район Чебоксар.</p>
+
+    <section class="about-section" aria-labelledby="aboutIdea"><h3 id="aboutIdea">Зачем нужна такая карта</h3>
+      <p>Объявления об отключениях, планы ремонта и ответы на обращения разбросаны по разным источникам. Жителю сложно понять, почему перекопан двор, когда вернут воду и кто отвечает за восстановление.</p>
+      <p>Идея проекта — связать место, проблему и ход решения. На карте можно увидеть, какие ограничения действуют, кто выполняет работы, каков плановый срок и откуда получена информация. Связанные этапы складываются в одну историю: ремонт трубы → раскопки → восстановление асфальта.</p>
+    </section>
+
+    <section class="about-section" aria-labelledby="aboutLayers"><h3 id="aboutLayers">Три уровня одного города</h3>
+      <p>Переключайте слои, чтобы смотреть только нужный тип городской инфраструктуры.</p>
+      <div class="about-levels"><div><svg class="icon"><use href="#i-build"/></svg><b>Над землёй</b><p>Фасады, освещение и воздушные линии. В демо — граффити на здании и ремонт освещения.</p></div><div><svg class="icon"><use href="#i-road"/></svg><b>На земле</b><p>Дороги, дворы, тротуары и благоустройство. В демо — ремонт дороги и оледенение.</p></div><div><svg class="icon"><use href="#i-tap"/></svg><b>Под землёй</b><p>Водопровод, теплосети и канализация. В демо — отключение воды и ремонт теплосети, затронутые ветви и дома.</p></div></div>
+      <div class="about-statuses" aria-label="Цвета статусов"><span><i class="legend-dot outage" aria-hidden="true"></i>Красный — запланировано</span><span><i class="legend-dot active" aria-hidden="true"></i>Жёлтый — в работе</span><span><i class="legend-dot confirmed" aria-hidden="true"></i>Зелёный — выполнено</span></div>
+    </section>
+
+    <section class="about-section" aria-labelledby="aboutFeatures"><h3 id="aboutFeatures">Что можно сделать</h3>
+      <dl class="about-features">
+        <div><dt>Найти улицу или событие</dt><dd>Введите название в поиск, например «Эльгера» или «вода». Выбор результата перенесёт карту к улице или откроет нужное событие.</dd></div>
+        <div><dt>Изучить карту</dt><dd>Перемещайте её мышью или пальцем, приближайте колёсиком, кнопками + / − или двумя пальцами. Переключатель 2D / 3D меняет способ отображения, сохраняя события и выбранный слой.</dd></div>
+        <div><dt>Узнать, что произошло</dt><dd>Нажмите метку: появится карточка со статусом, ответственным, сроком, источником и временем обновления. «Узнать подробнее» откроет описание и ограничения в блоке «События рядом».</dd></div>
+        <div><dt>Посмотреть события и этапы работ</dt><dd>Список показывает события текущего слоя. Фильтры отделяют обращения, работы и отключения. В подробностях связанных событий можно перейти к другому этапу общей истории.</dd></div>
+        <div><dt>Выбрать свой дом</dt><dd>Укажите адрес и радиус 300 м, 500 м или 1 км: круг на карте обозначит зону внимания, а блок дома покажет число событий рядом. Если точный дом не найден, адрес привязывается к улице.</dd></div>
+        <div><dt>Сохранить событие</dt><dd>Кнопка «Следить за событием» в подробностях добавляет его в подписки. Откройте колокольчик, чтобы вернуться к сохранённым событиям и настройкам дома.</dd></div>
+        <div><dt>Сообщить о проблеме</dt><dd>Кнопка «Сообщить» открывает форму с типом проблемы, адресом и описанием. Сохранённые обращения доступны в разделе «Мои обращения»; на общей карте они автоматически не публикуются.</dd></div>
+      </dl>
+    </section>
+
+    <section class="about-section" aria-labelledby="aboutGuide"><h3 id="aboutGuide">Как начать — пять шагов</h3>
+      <ol class="about-guide"><li><b>Выберите уровень.</b> Нажмите название слоя и выберите «Над землёй», «На земле» или «Под землёй».</li><li><b>Найдите место.</b> Воспользуйтесь поиском либо переместите и приблизьте карту.</li><li><b>Нажмите цветную метку.</b> Проверьте статус, ответственного и плановый срок.</li><li><b>Откройте «Узнать подробнее».</b> Прочитайте ограничения, описание и связанные этапы; при необходимости нажмите «Следить за событием».</li><li><b>Настройте карту под себя.</b> Добавьте дом и радиус интереса. Если заметили другую проблему, откройте форму «Сообщить».</li></ol>
+      <p class="about-hint">На компьютере список можно скрыть стрелкой рядом с поиском. На телефоне разверните «События рядом» кнопкой в его заголовке. Карточка у метки закрывается крестиком или нажатием на свободное место карты.</p>
+    </section>
+
+    <section class="about-pilot" aria-labelledby="aboutPilot"><h3 id="aboutPilot">Что важно знать о пилоте</h3>
+      <p>Демонстрационный прототип с шестью сценариями. Геометрия — OpenStreetMap; сети, события и сроки условные. Дом, подписки и обращения хранятся в этом браузере, обращения службам не отправляются. Push-уведомления и аккаунты пока недоступны. Для рабочего пилота нужны соглашения с городскими службами и проверка сообщений жителей.</p>
+    </section>
   </dialog>
 
   <dialog class="modal" id="activityModal" aria-labelledby="activityTitle"><div class="modal-header"><span class="modal-icon"><svg class="icon" id="activityIcon"><use href="#i-bell"/></svg></span><button type="button" class="icon-button" data-close aria-label="Закрыть"><svg class="icon"><use href="#i-x"/></svg></button></div><span class="eyebrow" id="activityEyebrow">МОЙ ГОРОД</span><h2 id="activityTitle">Подписки и уведомления</h2><div id="activityBody"></div></dialog>

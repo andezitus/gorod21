@@ -303,6 +303,16 @@
           if(!batches.has(key))batches.set(key,[]);
           batches.get(key).push(path(branch.p,-12,opt));
         }
+        // Show the final rise from the buried feed to the real wall point.
+        // It shares the branch batch and status, rather than adding per-house SVG elements.
+        const housesById=new Map(painted.houses.map(house=>[String(house.building),house]));
+        if(!opt.flat)for(const connection of window.CITY_DATA.network.houseConnections||[]){
+          const house=housesById.get(String(connection.building));
+          const key=house?.eventId||'';
+          if(!batches.has(key))batches.set(key,[]);
+          const lower=project(connection.p,-12,opt),wall=project(connection.p,0,opt);
+          batches.get(key).push(`M${lower.join(',')}L${wall.join(',')}`);
+        }
         model.branchViews.clear();
         model.branchViews.set(signature,[...batches].map(([eventId,lines])=>({eventId,line:lines.join('')})));
       }
@@ -378,7 +388,6 @@
       out+=`<g class="city-island-sides" pointer-events="none"><path d="${wallsPath(boundary,-32,-7,opt)}" fill="${palette.slab}"/><path d="${wallsPath(boundary,-7,0,opt)}" fill="${palette.slabEdge}"/></g>`;
     }
     out+='<g class="city-island" pointer-events="none"><g class="city-forest-fringe">';
-    for(const band of d.coast||[])out+=`<path d="${path(band.p,0,opt,true)}" fill="${palette.forest}" opacity="${band.opacity}"/>`;
     if(d.island)out+=`<path d="${path(d.island,0,opt,true)}" fill="${palette.forest}"/>`;
     out+='</g>';
     if(d.island)out+=`<path class="city-under-base" d="${path(d.island,0,opt,true)}" fill="${palette.land}"/>`;
@@ -414,14 +423,17 @@
       if(line)out+=`<path d="${line}" stroke="${palette.activeRoad}" stroke-width="${width}"/>`;
     }
     out+='</g>';
+    out+='<!--city-ground-events--><!--city-lights-->';
     const sorted=d.buildings.map(building=>({building,depth:project(buildingModel(building).point,0,opt)[1]})).sort((a,b)=>a.depth-b.depth).map(item=>item.building);
     out+='<g class="city-buildings" stroke-linejoin="round" pointer-events="none">';
     for(const b of sorted){
+      out+=`<g class="city-building" data-building-volume="${b.id}">`;
       const z=b.h*.85, p=buildingModel(b).points;
       const service=['industrial','warehouse','garages','garage','service'].includes(b.kind);
       const walls=wallsPath(p,0,z,opt);
       if(walls)out+=`<path class="building-body" data-building-wall="${b.id}" d="${walls}" fill="${service?palette.serviceWall:palette.wall}"/>`;
       out+=`<path data-building="${b.id}" d="${path(p,z,opt,true)}" fill="${service?palette.serviceRoof:palette.roof}" stroke="${palette.roofEdge}" stroke-opacity=".45" stroke-width=".45"/>`;
+      out+='</g>';
     }
     out+='</g>';
     scene.views.set(view,out);
@@ -429,15 +441,21 @@
     out=out.replace('<!--city-network-->',pipesMarkup(opt,events));
     const affected=new Map(paintedNetworks.get(topology).houses.map(house=>[String(house.building),house.eventId]));
     const byId=new Map(events.map(event=>[event.id,event]));
-    // Change only the under-layer fill. Original paths, depth order and opacity
-    // are shared, so affected buildings are never painted twice.
+    const aboveAffected=new Map();
+    for(const event of events.filter(item=>item.layer==='above'&&item.icon!=='light')){
+      const building=nearestBuilding(event.point);if(building)aboveAffected.set(String(building.id),event);
+    }
+    // Status colors belong to the existing walls and roofs. Their original
+    // depth order and shared opacity let foreground buildings cover them.
     out=out.replace(/<path\b[^>]*\bdata-building(?:-wall)?="([^"]+)"[^>]*>/g,(tag,id)=>{
-      const event=byId.get(affected.get(id));if(!event)return tag;
-      const color=statusColor(eventColorCategory(event));
-      tag=tag.includes('class="')?tag.replace(/class="([^"]*)"/,'class="$1 network-affected"'):tag.replace('<path','<path class="network-affected"');
-      return tag.replace('<path',`<path data-affected-event="${esc(event.id)}" style="--affected-color:${color}"`);
+      const underEvent=byId.get(affected.get(id)),aboveEvent=aboveAffected.get(id),classes=[],styles=[],attributes=[];
+      if(underEvent){classes.push('network-affected');styles.push(`--affected-color:${statusColor(eventColorCategory(underEvent))}`);attributes.push(`data-affected-event="${esc(underEvent.id)}"`);}
+      if(aboveEvent){classes.push('above-affected',tag.includes('data-building-wall=')?'event-building-walls':'event-building-roof');styles.push(`--above-event-color:${statusColor(eventColorCategory(aboveEvent))}`);attributes.push(`data-above-event="${esc(aboveEvent.id)}"`);}
+      if(!classes.length)return tag;
+      tag=tag.includes('class="')?tag.replace(/class="([^"]*)"/,`class="$1 ${classes.join(' ')}"`):tag.replace('<path',`<path class="${classes.join(' ')}"`);
+      return tag.replace('<path',`<path ${attributes.join(' ')} style="${styles.join(';')}"`);
     });
-    out+='<g class="city-lights">';
+    let lights='<g class="city-lights" pointer-events="none">';
     const lightEvents=events.filter(event=>event.layer==='above'&&event.icon==='light');
     const lightPoints=lightEvents.map(event=>event.point);
     for(const road of d.streetLabels||[]){
@@ -449,21 +467,12 @@
       const [x,y]=project([p[0],p[1]+3],0,opt);
       const related=lightEvents.reduce((best,event)=>!best||dist(event.point,p)<dist(best.point,p)?event:best,null);
       const active=related&&dist(related.point,p)<24,color=active?statusColor(eventColorCategory(related)):palette.light;
-      if(opt.flat)out+=`<circle class="city-lamp-dot" cx="${x}" cy="${y}" r="${active?2.2:1.5}" fill="${color}"/>`;
-      else out+=`<path class="city-lamp-pole" d="M${x},${y}v-11h3.5" fill="none" stroke="${color}" stroke-width="${active?1.4:.7}"/><ellipse cx="${x+3.5}" cy="${y-11}" rx="${active?2:1.4}" ry="${active?1.5:.7}" fill="${color}"/>`;
+      if(opt.flat)lights+=`<circle class="city-lamp-dot" cx="${x}" cy="${y}" r="${active?2.2:1.5}" fill="${color}"/>`;
+      else lights+=`<path class="city-lamp-pole" d="M${x},${y}v-11h3.5" fill="none" stroke="${color}" stroke-width="${active?1.4:.7}"/><ellipse cx="${x+3.5}" cy="${y-11}" rx="${active?2:1.4}" ry="${active?1.5:.7}" fill="${color}"/>`;
     }
-    out+='</g>';
-    out+='<g class="event-object-highlights-above" pointer-events="none">';
-    for(const event of events.filter(item=>item.layer==='above'&&item.icon!=='light')){
-      const object=nearestBuilding(event.point);if(!object)continue;
-      const color=statusColor(eventColorCategory(event)),height=object.h*.85;
-      const points=buildingModel(object).points;
-      out+=`<g class="event-object-highlight status-${eventColorCategory(event)}" data-highlight-event="${esc(event.id)}" fill="${color}" opacity=".85">`;
-      const walls=wallsPath(points,0,height,opt);
-      if(walls)out+=`<path class="event-building-walls" d="${walls}"/>`;
-      out+=`<path class="event-building-roof" d="${path(points,height,opt,true)}" stroke="${color}" stroke-width=".5"/></g>`;
-    }
-    out+='</g>';
+    lights+='</g>';
+    out=out.replace('<!--city-lights-->',lights);
+    out=out.replace('<!--city-ground-events-->','<g id="groundEventHighlights">'+events.filter(event=>event.layer==='ground').map(event=>eventNetworkMarkup(event,opt)).join('')+'</g>');
     let labelMarkup='<g class="city-labels" font-family="Manrope, sans-serif">';
     for(const label of d.streetLabels||[]){
       const points=project(label.p[0],0,opt)[0]>project(label.p.at(-1),0,opt)[0]?[...label.p].reverse():label.p;
@@ -472,7 +481,7 @@
     for(const label of d.areaLabels||[]){const [x,y]=project(label.p,1,opt);labelMarkup+=`<text class="city-area-label" x="${x}" y="${y}" fill="${palette.label}" font-size="${round(label.size*.7)}" font-weight="500" text-anchor="middle" stroke="${palette.land}" stroke-width=".8" stroke-opacity=".7" paint-order="stroke">${esc(label.t)}</text>`;}
     labelMarkup+='</g>';
     out+='<g id="homeRadius"></g>';
-    out+='<g id="eventHighlights">'+events.filter(event=>event.layer==='ground'||event.layer==='under').map(event=>eventNetworkMarkup(event,opt)).join('')+'</g>';
+    out+='<g id="eventHighlights">'+events.filter(event=>event.layer==='under').map(event=>eventNetworkMarkup(event,opt)).join('')+'</g>';
     out+='<g id="cityMarkers">'+events.map(e=>marker(e,opt,e.id===selectedId)).join('')+'</g>';
     return out+labelMarkup+'</g>';
   }

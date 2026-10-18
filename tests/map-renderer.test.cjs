@@ -15,15 +15,22 @@ function load() {
   vm.runInContext(app.slice(0, app.indexOf('  const statusText')) + 'window.testEvents=events;})();', context);
   return {context, renderer:context.window.GorodMapRenderer, geometry:context.window.testGeometry, events:context.window.testEvents, data:context.window.CITY_DATA};
 }
-const group = (svg, name) => (svg.match(new RegExp('<g class="' + name + '"[^>]*>([\\s\\S]*?)<\\/g>')) || [])[1] || '';
+const group = (svg, name) => {
+  const start=new RegExp('<g class="'+name+'"[^>]*>').exec(svg);if(!start)return '';
+  const content=start.index+start[0].length,tags=/<\/?g\b[^>]*>/g;tags.lastIndex=content;
+  let depth=1,tag;
+  while((tag=tags.exec(svg))){depth+=tag[0].startsWith('</')?-1:1;if(!depth)return svg.slice(content,tag.index);}
+  return '';
+};
 const paths = svg => svg.match(/<path\b[^>]*>/g) || [];
 const attr = (tag, name) => (tag.match(new RegExp('\\b' + name + '="([^"]*)"')) || [])[1];
 const plain = object => JSON.parse(JSON.stringify(object));
-function gestureMap() {
+function gestureMap(nativeTouch=false) {
   const {context}=load(),handlers={viewport:{},svg:{}},frames=new Map(),notifications=[],selected=[],rendered=[],captured=new Set(),classes=new Set();
   let frameId=0;
   context.CustomEvent=class {constructor(type){this.type=type;}};
   context.window.addEventListener=()=>{};
+  if(nativeTouch)context.window.ontouchstart=null;
   context.window.dispatchEvent=event=>notifications.push(event.type);
   context.window.requestAnimationFrame=callback=>{frames.set(++frameId,callback);return frameId;};
   context.window.cancelAnimationFrame=id=>frames.delete(id);
@@ -34,9 +41,15 @@ function gestureMap() {
   map.setTransform=()=>rendered.push({zoom:map.zoom,pan:[...map.pan]});map.bind();
   const marker={dataset:{eventId:'u1'},closest(){return this;}};
   const pointer=(type,id,x,y,target=viewport,pointerType='touch')=>handlers.viewport[type]({pointerId:id,clientX:x,clientY:y,button:0,target,pointerType});
-  const click=()=>handlers.svg.click({target:marker});
+  const click=(detail=1)=>handlers.svg.click({target:marker,detail});
+  const touch=(type,active,changed=active,target=viewport)=>{
+    let prevented=false;
+    const contacts=points=>points.map(([identifier,clientX,clientY])=>({identifier,clientX,clientY}));
+    handlers.viewport[type]({type,target,touches:contacts(active),changedTouches:contacts(changed),preventDefault(){prevented=true;}});
+    return prevented;
+  };
   const flush=()=>{for(const [id,callback] of [...frames]){frames.delete(id);callback();}};
-  return {map,pointer,click,flush,frames,notifications,selected,rendered,captured,classes,marker,viewport};
+  return {map,pointer,touch,click,flush,frames,notifications,selected,rendered,captured,classes,marker,viewport};
 }
 const pointKey = point => point.map(n => Math.round(n * 100) / 100).join(',');
 function segments(roads) {
@@ -217,10 +230,10 @@ test('a third finger can take over the pinch without a zoom or pan jump',()=>{
   g.pointer('pointerup',3,450,220);g.click();assert.equal(g.selected.length,0);
 });
 
-test('island, soft forest boundary and all supplied street names survive 2D and 3D', () => {
+test('island has no green halo and all supplied street names survive 2D and 3D', () => {
   const {renderer,data,events}=load();
   assert(data.buildings.length>200);
-  assert(data.coast.length>=5&&data.trees.flat().length===0);
+  assert(data.coast.length===0&&data.trees.flat().length===0);
   for(const flat of [false,true]){
     const svg=renderer.drawScene({flat},events);
     assert(svg.includes('class="city-island"'));
@@ -244,12 +257,13 @@ test('six requested scenarios use status colors independently of event type', ()
 test('above-ground color includes walls, lamps halve in 3D and become dots in 2D',()=>{
   const {renderer,events}=load();
   const three=renderer.drawScene({flat:false},events),two=renderer.drawScene({flat:true},events);
-  assert(three.includes('class="event-building-walls"'));assert(three.includes('class="event-building-roof"'));
-  assert(!two.includes('class="event-building-walls"'));assert(two.includes('class="event-building-roof"'));
+  assert(three.includes('event-building-walls'));assert(three.includes('event-building-roof'));
+  assert(!two.includes('event-building-walls'));assert(two.includes('event-building-roof'));
   assert(three.includes('v-11h3.5'));assert(!three.includes('v-22h7'));
   assert(two.includes('class="city-lamp-dot"'));assert(!two.includes('class="city-lamp-pole"'));
   const css=fs.readFileSync(path.join(root,'styles.css'),'utf8');
-  for(const match of css.matchAll(/\.city-buildings\{opacity:([^}]+)\}/g))assert.equal(match[1],'.75');
+  assert(css.includes('.map-shell[data-layer="under"] .city-buildings{opacity:.75}'));
+  assert(css.includes('.map-shell[data-layer="above"] .city-building,.map-shell[data-layer="ground"] .city-building{opacity:.75}'));
 });
 
 test('road status strokes match the source carriageway width',()=>{
@@ -384,4 +398,81 @@ test('utility extent is independent of the road clip for the restored perimeter 
   const clip=svg.match(/<clipPath id="city-pipe-clip">([\s\S]*?)<\/clipPath>/)[1];
   const expected=data.networkBoundary.map((point,index)=>{const p=renderer.project(point,-12,{});return (index?'L':'M')+p.join(',');}).join('')+'Z';
   assert.equal(attr(paths(clip)[0],'d'),expected);
+});
+
+test('native mobile touches pinch atomically, avoid duplicate pointers, and continue as a pan',()=>{
+  const g=gestureMap(true),{map}=g;
+  g.pointer('pointerdown',1,100,200);g.pointer('pointermove',1,200,200);
+  assert.deepEqual(plain(map.pan),[0,0]);
+  assert(g.touch('touchstart',[[1,100,200]]));
+  assert(g.touch('touchstart',[[1,100,200],[2,200,200]],[[2,200,200]],g.marker));
+  assert(g.touch('touchmove',[[1,80,220],[2,280,220]]));
+  assert.equal(map.zoom,2);assert.deepEqual(plain(map.pan),[480,258]);
+  assert.equal(g.frames.size,1);assert.equal(g.captured.size,0);
+  g.touch('touchend',[[2,280,220]],[[1,80,220]]);assert.equal(g.frames.size,0);
+  g.touch('touchmove',[[2,300,230]]);assert.deepEqual(plain(map.pan),[500,268]);
+  g.touch('touchend',[],[[2,300,230]]);g.click();assert.equal(g.selected.length,0);
+  assert(g.notifications.includes('mapzoom'));assert(!g.classes.has('dragging'));
+});
+
+test('native touch marker taps select once; canceled and multi-touch gestures never select',()=>{
+  const g=gestureMap(true);
+  g.touch('touchstart',[[1,100,100]],undefined,g.marker);g.touch('touchend',[],[[1,100,100]],g.marker);
+  g.click();assert.deepEqual(g.selected,['u1']);
+  g.touch('touchstart',[[2,100,100]],undefined,g.marker);g.touch('touchcancel',[],[[2,100,100]],g.marker);
+  assert.deepEqual(g.selected,['u1']);
+  g.touch('touchstart',[[3,100,100]],undefined,g.marker);
+  g.touch('touchstart',[[3,100,100],[4,200,100]],[[4,200,100]],g.marker);
+  g.touch('touchmove',[[3,100,100],[4,10000,100]]);assert.equal(g.map.zoom,16);
+  g.touch('touchmove',[[3,100,100],[4,101,100]]);assert.equal(g.map.zoom,.68);
+  g.touch('touchcancel',[],[[3,100,100],[4,101,100]],g.marker);
+  assert.deepEqual(g.selected,['u1']);assert(!g.classes.has('dragging'));
+});
+
+test('selecting and redrawing markers preserves the current layer and filter',()=>{
+  const {context,events}=load(),map=Object.create(context.window.CityMap.prototype);
+  map.eventsById=new Map(events.map(event=>[event.id,event]));map.layer='above';map.filter='all';
+  map.markerNodes=events.map(event=>({dataset:{eventId:event.id,markerLayer:event.layer},style:{},classList:{toggle(){}},setAttribute(){}}));
+  const visible=()=>map.markerNodes.filter(n=>n.style.display!=='none').map(n=>n.dataset.eventId);
+  map.updateMarkers();assert.deepEqual(plain(visible()),['a1','a2']);
+  map.setFilter('work');map.setSelected('a2');assert.deepEqual(plain(visible()),['a2']);
+  map.setLayer('under');assert.deepEqual(plain(visible()),['u1','u2']);
+  map.setLayer('above');assert.deepEqual(plain(visible()),['a1','a2']);
+});
+
+test('surface highlights and lamps retain depth beneath translucent building volumes',()=>{
+  const {renderer,data,events}=load(),above=events.find(event=>event.id==='a1');
+  for(const flat of [false,true]){
+    const svg=renderer.drawScene({flat},events),buildings=group(svg,'city-buildings');
+    assert(svg.indexOf('id="groundEventHighlights"')<svg.indexOf('class="city-lights"'));
+    assert(svg.indexOf('class="city-lights"')<svg.indexOf('class="city-buildings"'));
+    assert(!svg.includes('class="event-object-highlights-above"'));
+    assert.equal((svg.match(/data-building-volume=/g)||[]).length,data.buildings.length);
+    const colored=paths(buildings).filter(tag=>attr(tag,'data-above-event')===above.id);
+    assert.equal(colored.length,flat?1:2);
+    for(const tag of colored){
+      assert(attr(tag,'data-building')||attr(tag,'data-building-wall'));
+      assert(attr(tag,'style').includes('--above-event-color:#27834e'));
+    }
+    const noEvents=renderer.drawScene({flat},[]);
+    assert(!noEvents.includes('data-above-event'));
+    assert.deepEqual(paths(group(noEvents,'city-buildings')).map(tag=>attr(tag,'d')),paths(buildings).map(tag=>attr(tag,'d')));
+    const changed=plain(events);changed.find(event=>event.id==='a1').status='planned';
+    assert(paths(group(renderer.drawScene({flat},changed),'city-buildings')).filter(tag=>attr(tag,'data-above-event')===above.id).every(tag=>attr(tag,'style').includes('--above-event-color:#c94343')));
+  }
+});
+
+test('buried feeds visibly meet each connected building base and keep the same status',()=>{
+  const {renderer,geometry,data,events}=load();
+  const svg=renderer.drawScene({flat:false},events),pipes=group(svg,'city-pipes');
+  const painted=geometry.paintedNetworks.get(geometry.networkModel());
+  for(const connection of data.network.houseConnections){
+    const lower=renderer.project(connection.p,-12,{}),wall=renderer.project(connection.p,0,{});
+    const riser='M'+lower.join(',')+'L'+wall.join(',');
+    const owner=painted.houses.find(house=>String(house.building)===String(connection.building));
+    const batch=paths(pipes).find(tag=>attr(tag,'class')==='pipe-house-branches'&&(attr(tag,'data-highlight-event')||'')===(owner?.eventId||''));
+    assert(batch&&attr(batch,'d').includes(riser),connection.building);
+  }
+  assert.equal(data.network.houseConnections.length,170);
+  assert.equal(paths(pipes).filter(tag=>attr(tag,'class')==='pipe-house-branches').length,3);
 });
