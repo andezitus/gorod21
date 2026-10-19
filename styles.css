@@ -337,6 +337,62 @@ html{zoom:var(--ui-scale);min-height:calc(100dvh / var(--ui-scale))}
 #aboutModal .about-pilot{display:block;padding:10px 12px;margin:14px 0 0;border:0;border-radius:9px;background:#f5f8fd}
 #aboutModal .about-pilot h3{font-size:13px;line-height:1.5;letter-spacing:0;margin:0 0 5px}
 #aboutModal .about-pilot p{font-size:11.5px;line-height:1.7;margin:0;color:#7b8da5}
+
+/* One static work timeline; related-layer navigation has its own row below. */
+.events-panel .work-progress{--progress-color:var(--event-active);--progress-soft:var(--event-active-soft);margin:20px 0}
+.events-panel .work-progress[data-progress-status="planned"]{--progress-color:var(--event-outage);--progress-soft:var(--event-outage-soft)}
+.events-panel .work-progress .story-title{margin:0 0 16px;font-size:13px}
+.events-panel .work-progress .work-story{margin:0}
+.events-panel .work-story .work-step{display:grid;grid-template-columns:22px minmax(0,1fr);gap:12px;align-items:start;padding-bottom:20px}
+.events-panel .work-story .work-step:last-child{padding-bottom:0}
+.events-panel .work-story .work-step:not(:last-child)::after{left:10px;top:24px;bottom:0;width:2px;border:0;background:#e1e9f4}
+.events-panel .work-story .work-step.is-complete::after{background:#afd4bc}
+.events-panel .work-step .story-node{width:22px;height:22px;margin:0;border:1px solid #d6e2f1;background:#f5f8fd;font-size:10px;font-weight:700;color:#8299b5;line-height:1;box-shadow:none}
+.events-panel .work-step.is-complete .story-node{background:var(--event-confirmed-soft);border-color:#add3ba;color:var(--event-confirmed)}
+.events-panel .work-step.is-current .story-node{background:var(--progress-color);border-color:var(--progress-color);color:#fff;box-shadow:0 0 0 3px var(--progress-soft)}
+.events-panel .work-step .story-node .icon{width:12px;height:12px}
+.events-panel .work-step-body{min-width:0;overflow-wrap:anywhere}
+.events-panel .work-step-body b{font-size:11.5px;line-height:1.6;margin:0 0 4px;color:#557594}
+.events-panel .work-step.is-current b{color:#244565}
+.events-panel .work-step-body .work-step-state{display:block;font-size:10px;font-weight:600;line-height:1.5;color:#8a9bb0;margin:0 0 4px}
+.events-panel .work-step.is-complete .work-step-state{color:var(--event-confirmed)}
+.events-panel .work-step.is-current .work-step-state{display:inline-block;color:var(--event-active-ink);background:var(--progress-soft);border-radius:5px;padding:2px 6px;margin-bottom:6px}
+.events-panel .work-progress[data-progress-status="planned"] .work-step.is-current .work-step-state{color:var(--event-outage)}
+.events-panel .work-step-body small{display:block;font-size:10.5px;line-height:1.7;color:#8395ab}
+.events-panel .work-related{margin-top:16px;padding-top:14px;border-top:1px solid #e7eef8}
+.events-panel .work-related .story-link{display:flex;align-items:center;gap:8px;width:100%;min-height:40px;padding:10px 12px;border:1px solid #dce9fa;border-radius:9px;background:#f3f8ff;color:var(--blue);font-size:11px;font-weight:650;line-height:1.5;text-align:left}
+.events-panel .work-related .story-link>span{min-width:0;overflow-wrap:anywhere}
+.events-panel .work-related .story-link>.icon{width:15px;height:15px;flex-shrink:0}
+.events-panel .work-related .story-link>.icon:last-child{margin-left:auto}
+.events-panel .work-related .story-link:hover{background:#eaf3ff;border-color:#bdd7f8}
+
+.events-panel .scenario-scene{margin:0 0 18px;min-width:0;border:1px solid #e3ebf7;border-radius:12px;overflow:hidden;background:#f4f7fc}
+.events-panel .scenario-scene img{display:block;width:100%;max-width:100%;height:auto;aspect-ratio:3/2;object-fit:contain;background:#edf3fc}
+.events-panel .scenario-scene figcaption{padding:7px 10px;font-size:10px;line-height:1.5;color:#8798ae;text-align:left}
+.events-panel .scenario-scene-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;aspect-ratio:3/2;width:100%;padding:20px;background:#edf3fc;text-align:center;color:#6583a7}
+.events-panel .scenario-scene-placeholder strong{max-width:100%;font-size:14px;font-weight:650;line-height:1.5;overflow-wrap:break-word}
+.events-panel .scenario-empty-icon{width:36px;height:36px;flex-shrink:0;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+.events-panel .scenario-empty-dot{fill:currentColor;stroke:none}
+.events-panel .scenario-scene-empty figcaption{padding:10px 12px;font-size:11px;line-height:1.6;color:#7186a0;overflow-wrap:break-word}
+
+/* Native horizontal scrolling supports touch swipes without a map gesture handler. */
+.events-panel .scenario-carousel-track{display:flex;width:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;touch-action:auto;outline-offset:-3px}
+.events-panel .scenario-carousel-track::-webkit-scrollbar{display:none}
+.events-panel .scenario-carousel-slide{position:relative;flex:0 0 100%;min-width:0;aspect-ratio:4/3;scroll-snap-align:start;scroll-snap-stop:always}
+.events-panel .scenario-carousel-slide img{width:100%;height:100%;aspect-ratio:4/3;object-fit:contain;user-select:none;-webkit-user-drag:none}
+.events-panel .scenario-carousel-badge{position:absolute;top:10px;left:10px;padding:4px 9px;border:1px solid #ffffffb3;border-radius:6px;background:#ffffffed;color:#315675;font-size:11px;font-weight:700;line-height:1.5;pointer-events:none}
+.events-panel .scenario-carousel figcaption{padding:8px 10px 10px}
+.events-panel .scenario-carousel-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.events-panel [data-carousel-position]{font-size:10.5px;line-height:1.5;font-weight:600;color:#617e9e;white-space:nowrap}
+.events-panel .scenario-carousel-nav{display:flex;align-items:center;gap:2px}
+.events-panel .carousel-arrow{display:grid;place-items:center;width:32px;height:32px;padding:0;border:1px solid #dce7f5;border-radius:7px;background:#fff;color:var(--blue);flex-shrink:0}
+.events-panel .carousel-arrow .icon{width:15px;height:15px}
+.events-panel .carousel-arrow:hover:not(:disabled){background:#eaf3ff}
+.events-panel .carousel-arrow:disabled{opacity:.35;cursor:default}
+.events-panel .carousel-dot{display:grid;place-items:center;width:26px;height:32px;padding:0;flex-shrink:0}
+.events-panel .carousel-dot>span{width:6px;height:6px;border-radius:50%;background:#c5d6ec}
+.events-panel .carousel-dot[aria-pressed="true"]>span{background:var(--blue);box-shadow:0 0 0 3px #e0edff}
+.events-panel .scenario-carousel-note{display:block;margin-top:5px;font-size:10px;line-height:1.5;color:#8798ae}
 @media(max-width:769.5px){
   .events-panel .panel-heading{padding:12px 14px}
   .events-panel .panel-heading h2{font-size:17px}

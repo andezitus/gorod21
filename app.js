@@ -57,14 +57,92 @@
     $('detailContent').hidden=true;$('panelContent').hidden=false;$('eventsPanel').classList.remove('show-detail');
     state.selected=null;
   }
+  function workStages(e){
+    const shared=[
+      ['Раскопки и подготовка участка','Подрядчик подготавливает и ограждает место работ.'],
+      ['Ремонт трубы','Водоканал заменяет участок, проверяет его и восстанавливает подачу воды.'],
+      ['Восстановление асфальта','Подрядчик восстанавливает покрытие и проверяет результат.']
+    ];
+    const progress={
+      u1:{current:0,steps:shared},g1:{current:2,steps:shared},
+      u2:{current:1,steps:[
+        ['Обследование и подготовка','Определён повреждённый участок, подготовлено место работ.'],
+        ['Замена участка теплосети','Бригада заменяет повреждённую часть трубопровода.'],
+        ['Испытания и проверка герметичности','Проверка соединений и испытания отремонтированного участка.'],
+        ['Подключение и восстановление участка','Возобновление работы сети и приведение места ремонта в порядок.']
+      ]},
+      g2:{current:1,steps:[
+        ['Осмотр и оценка наледи','Дорожная служба определила границы скользкого участка.'],
+        ['Обработка дороги','Покрытие обрабатывают противогололёдным материалом.'],
+        ['Контроль состояния покрытия','Проверка результата обработки и безопасности проезда.'],
+        ['Завершение работ','Подтверждение устранения наледи и снятие ограничений.']
+      ]},
+      a2:{current:1,steps:[
+        ['Обследование и проверка питания','Проверена линия питания, выявлены неисправные светильники.'],
+        ['Замена и ремонт светильников','Бригада восстанавливает освещение пешеходной зоны.'],
+        ['Проверка освещения','Контроль работы светильников и электрических соединений.'],
+        ['Завершение и приёмка работ','Подтверждение исправности освещения и закрытие работ.']
+      ]}
+    };
+    if(e.status!=='planned'&&e.status!=='work')return null;
+    const model=progress[e.id];if(!model)return null;
+    return e.status==='planned'?{current:0,steps:[['Стадия планирования','Согласование объёма, сроков и ответственных за работы.'],...model.steps]}:model;
+  }
   function workStory(e){
-    return `<h4 class="story-title">Одна проблема — одна история<span>3 связанных этапа</span></h4><ol class="work-story"><li><span class="story-node">${icon('wrench')}</span><div><b>Ремонт трубы</b><small>Водоканал · запланировано</small>${e.id!=='u1'?'<button type="button" class="story-link inline-action" data-go-event="u1">Посмотреть на нижнем слое →</button>':''}</div></li><li><span class="story-node">${icon('cone')}</span><div><b>Раскопки и подготовка участка</b><small>Подрядчик · запланировано</small></div></li><li><span class="story-node"></span><div><b>Восстановление асфальта</b><small>Благоустройство · после ремонта трубы</small>${e.id!=='g1'?'<button type="button" class="story-link inline-action" data-go-event="g1">Посмотреть на среднем слое →</button>':''}</div></li></ol>`;
+    const progress=workStages(e);if(!progress)return '';
+    const stages=progress.steps.map(([title,description],index)=>{
+      const phase=index<progress.current?'complete':index===progress.current?'current':'pending';
+      const label=phase==='complete'?'Завершено':phase==='current'?'Текущий этап':'Предстоит';
+      return `<li class="work-step is-${phase}"${phase==='current'?' aria-current="step"':''}><span class="story-node" aria-hidden="true">${phase==='complete'?icon('check'):index+1}</span><div class="work-step-body"><b>${escapeHTML(title)}</b><span class="work-step-state">${label}</span><small>${escapeHTML(description)}</small></div></li>`;
+    }).join('');
+    const related=e.story?`<div class="work-related"><button type="button" class="story-link" data-go-event="${e.id==='u1'?'g1':'u1'}" aria-label="${e.id==='u1'?'Посмотреть ремонт дороги на среднем слое':'Посмотреть отключение воды на нижнем слое'}">${icon('layers')}<span>Посмотреть на ${e.id==='u1'?'среднем':'нижнем'} слое</span>${icon('arrow')}</button></div>`:'';
+    return `<section class="work-progress" data-progress-status="${escapeHTML(e.status)}" aria-labelledby="workProgressTitle"><h4 class="story-title" id="workProgressTitle">Ход работ</h4><ol class="work-story" aria-label="Этапы выполнения работ">${stages}</ol>${related}</section>`;
+  }
+  function bindScenarioCarousel(){
+    const gallery=$('detailContent').querySelector('[data-scenario-carousel]');if(!gallery)return;
+    const track=gallery.querySelector('[data-carousel-track]'),slides=Array.from(track.querySelectorAll('[data-carousel-slide]'));
+    const dots=Array.from(gallery.querySelectorAll('[data-carousel-go]')),arrows=Array.from(gallery.querySelectorAll('[data-carousel-step]'));
+    const position=gallery.querySelector('[data-carousel-position]');
+    let active=-1;
+    const width=()=>track.clientWidth||track.getBoundingClientRect().width;
+    const current=()=>Math.max(0,Math.min(slides.length-1,Math.round(track.scrollLeft/(width()||1))));
+    const update=()=>{
+      const index=current();
+      if(index===active)return;active=index;
+      slides.forEach((slide,i)=>slide.setAttribute('aria-hidden',String(i!==index)));
+      dots.forEach(button=>button.setAttribute('aria-pressed',String(Number(button.dataset.carouselGo)===index)));
+      arrows.forEach(button=>{button.disabled=Number(button.dataset.carouselStep)<0?index===0:index===slides.length-1;});
+      position.textContent=`${index===0?'До':'После'} · ${index+1} из ${slides.length}`;
+    };
+    const go=index=>{track.scrollLeft=Math.max(0,Math.min(slides.length-1,index))*width();update();};
+    dots.forEach(button=>button.addEventListener('click',()=>go(Number(button.dataset.carouselGo))));
+    arrows.forEach(button=>button.addEventListener('click',()=>go(current()+Number(button.dataset.carouselStep))));
+    track.addEventListener('scroll',update,{passive:true});
+    track.addEventListener('keydown',event=>{
+      const keys={ArrowLeft:current()-1,ArrowRight:current()+1,Home:0,End:slides.length-1};
+      if(!(event.key in keys))return;
+      event.preventDefault();go(keys[event.key]);
+    });
+    track.scrollLeft=0;update();
   }
   function renderDetail(){
     const e=events.find(e=>e.id===state.selected);if(!e)return;
     const followed=state.saved.includes(e.id);
     const affected={u1:'Холодное водоснабжение соседних домов',u2:'Дома, подключённые к участку теплосети',g1:'Проезд на участке ремонтных работ',g2:'Участок дороги с наледью',a1:'Фасад здания',a2:'Освещение пешеходной зоны'};
     const illustration={tap:'water',wrench:'heating',road:'road',spray:'graffiti',snow:'ice',light:'lighting'}[e.icon];
+    const workPhoto={
+      u2:{width:900,height:600,alt:'Рабочие ремонтируют трубы теплосети в открытой траншее.'},
+      g2:{width:960,height:539,alt:'Дорожная машина распределяет противогололёдный материал по зимней дороге.'},
+      a2:{width:960,height:594,alt:'Мастер на подъёмнике ремонтирует уличный светильник.'}
+    }[e.id];
+    const sceneAlt={tap:'Иллюстрация отключения воды: сухой кран, пустое ведро и перекрытый водопровод.',wrench:'Иллюстрация ремонта теплосети: повреждённая труба в раскопанном участке.',road:'Иллюстрация ремонта дороги: снятый асфальт, гравий и ограждение участка.',spray:'Иллюстрация граффити: следы краски на фасаде жилого здания.',snow:'Иллюстрация оледенения дороги: скользкое покрытие во дворе.',light:'Иллюстрация неисправного освещения: повреждённый фонарь и инструменты для ремонта.'}[e.icon];
+    const scene=e.status==='planned'?`<figure class="scenario-scene scenario-scene-empty"><div class="scenario-scene-placeholder"><svg class="scenario-empty-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="16" cy="16" r="13"/><path d="M16 9v9"/><circle class="scenario-empty-dot" cx="16" cy="23" r="1"/></svg><strong>Изображения отсутствуют</strong></div><figcaption>Изображения появятся, как только объект перейдет в стадию выполнения работ.</figcaption></figure>`:e.id==='a1'?`<figure class="scenario-scene scenario-carousel" data-scenario-carousel aria-label="Фасад здания до и после очистки">
+      <div class="scenario-carousel-track" id="graffitiCarouselTrack" data-carousel-track tabindex="0" role="region" aria-roledescription="карусель" aria-label="До и после. Листайте горизонтально или используйте стрелки на клавиатуре">
+        <div class="scenario-carousel-slide" data-carousel-slide role="group" aria-roledescription="слайд" aria-label="1 из 2: до очистки"><span class="scenario-carousel-badge">До</span><img src="./assets/events/scenes/graffiti-before.webp" width="960" height="720" alt="Фасад до очистки: граффити на белой кирпичной стене." loading="lazy" decoding="async" draggable="false"></div>
+        <div class="scenario-carousel-slide" data-carousel-slide role="group" aria-roledescription="слайд" aria-label="2 из 2: после очистки" aria-hidden="true"><span class="scenario-carousel-badge">После</span><img src="./assets/events/scenes/graffiti-after.webp" width="960" height="720" alt="Тот же фасад после очистки: белая кирпичная стена без граффити." loading="lazy" decoding="async" draggable="false"></div>
+      </div>
+      <figcaption><div class="scenario-carousel-toolbar"><span data-carousel-position aria-live="polite" aria-atomic="true">До · 1 из 2</span><div class="scenario-carousel-nav" aria-label="Переключение изображений"><button type="button" class="carousel-arrow" data-carousel-step="-1" aria-controls="graffitiCarouselTrack" aria-label="Предыдущее изображение" disabled>${icon('back')}</button><button type="button" class="carousel-dot" data-carousel-go="0" aria-controls="graffitiCarouselTrack" aria-label="Показать фото до очистки" aria-pressed="true"><span></span></button><button type="button" class="carousel-dot" data-carousel-go="1" aria-controls="graffitiCarouselTrack" aria-label="Показать изображение после очистки" aria-pressed="false"><span></span></button><button type="button" class="carousel-arrow" data-carousel-step="1" aria-controls="graffitiCarouselTrack" aria-label="Следующее изображение">${icon('arrow')}</button></div></div><span class="scenario-carousel-note">Иллюстрация результата очистки</span></figcaption>
+    </figure>`:illustration?`<figure class="scenario-scene"><img src="./assets/events/scenes/${illustration}.webp${workPhoto?'?v=20261019-work-photos':''}" width="${workPhoto?.width||960}" height="${workPhoto?.height||640}"${workPhoto?` style="aspect-ratio:${workPhoto.width}/${workPhoto.height}"`:''} alt="${escapeHTML(workPhoto?.alt||sceneAlt||e.title)}" loading="lazy" decoding="async"><figcaption>Иллюстрация события</figcaption></figure>`:'';
     $('detailContent').innerHTML=`<button type="button" class="detail-back" id="detailBack">${icon('back')}Все события на слое</button>
       <section class="scenario-summary" aria-label="Основная информация о событии">
         <div class="scenario-heading">
@@ -81,7 +159,8 @@
           <div class="scenario-source">${icon('clock')}<div><small>Обновлено</small><b>${escapeHTML(e.updated)}</b></div></div>
         </div>
       </section>
-      <div class="scenario-more"><h4>Подробности события</h4><p class="detail-description">${escapeHTML(e.description)}</p><div class="restriction"><b>Ограничения для жителей</b>${escapeHTML(e.restriction)}</div>${e.story?workStory(e):''}<button type="button" class="follow-button ${followed?'followed':''}" id="followEvent" aria-pressed="${followed}">${icon(followed?'check':'bell')}${followed?'Вы следите за событием':'Следить за событием'}</button><div class="source-block">Демонстрационный сценарий. Событие и сроки не подтверждены городскими службами. Сведения об организации не подтверждены; плановый срок указан условно.</div></div>`;
+      <div class="scenario-more">${scene}<h4>Подробности события</h4><p class="detail-description">${escapeHTML(e.description)}</p><div class="restriction"><b>Ограничения для жителей</b>${escapeHTML(e.restriction)}</div>${workStory(e)}<button type="button" class="follow-button ${followed?'followed':''}" id="followEvent" aria-pressed="${followed}">${icon(followed?'check':'bell')}${followed?'Вы следите за событием':'Следить за событием'}</button></div>`;
+    bindScenarioCarousel();
   }
   function closeMapPopup(restoreFocus=false){
     const id=popupEventId;popupEventId=null;$('mapEventPopup').hidden=true;
@@ -117,7 +196,7 @@
     const e=events.find(e=>e.id===id);if(!e)return;
     if(state.layer!==e.layer)setLayer(e.layer,true);
     state.filter='all';updateFilterButtons();renderList();state.selected=id;
-    revealEventsPanel();map.setSelected(id);$('detailContent').hidden=false;$('panelContent').hidden=true;$('eventsPanel').classList.add('show-detail');renderDetail();
+    revealEventsPanel();map.setSelected(id);$('detailContent').hidden=false;$('panelContent').hidden=true;$('eventsPanel').classList.add('show-detail');renderDetail();$('detailContent').scrollTop=0;
     $('mapTip').hidden=true;
     if(isMobile()){$('eventsPanel').classList.add('expanded');$('panelToggle').setAttribute('aria-expanded','true');}
   }
@@ -229,7 +308,7 @@
   $('detailContent').addEventListener('click',e=>{
     if(e.target.closest('#detailBack')){const current=state.selected;closeDetail();map.setSelected(current);renderList();return;}
     if(e.target.closest('#followEvent')){toggleFollow();return;}
-    const go=e.target.closest('[data-go-event]');if(go)openEvent(go.dataset.goEvent);
+    const go=e.target.closest('[data-go-event]');if(go){openEvent(go.dataset.goEvent);$('detailBack').focus({preventScroll:true});}
   });
   document.querySelectorAll('[data-about]').forEach(b=>b.addEventListener('click',()=>openModal('aboutModal')));
   document.querySelectorAll('[data-report]').forEach(b=>b.addEventListener('click',()=>{$('reportLayer').value=state.layer;openModal('reportModal');}));
