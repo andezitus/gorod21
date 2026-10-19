@@ -311,6 +311,19 @@
     const go=e.target.closest('[data-go-event]');if(go){openEvent(go.dataset.goEvent);$('detailBack').focus({preventScroll:true});}
   });
   document.querySelectorAll('[data-about]').forEach(b=>b.addEventListener('click',()=>openModal('aboutModal')));
+  $('aboutModal').addEventListener('click',event=>{
+    const jump=event.target.closest('[data-guide-target]');
+    if(jump){
+      const chapter=$(jump.dataset.guideTarget);if(!chapter)return;
+      chapter.open=true;chapter.scrollIntoView?.({block:'start'});chapter.querySelector('summary').focus({preventScroll:true});return;
+    }
+    const button=event.target.closest('[data-guide-image]');if(!button)return;
+    const image=button.querySelector('img');if(!image)return;
+    $('guideImageTitle').textContent=image.alt;
+    $('guideZoomImage').src=image.src;$('guideZoomImage').alt=image.alt;
+    openModal('guideImageModal');$('guideImageModal').querySelector('[data-close]').focus({preventScroll:true});
+  });
+  $('guideImageModal').addEventListener('close',()=>{$('guideZoomImage').removeAttribute('src');$('guideZoomImage').alt='';});
   document.querySelectorAll('[data-report]').forEach(b=>b.addEventListener('click',()=>{$('reportLayer').value=state.layer;openModal('reportModal');}));
   document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>b.closest('dialog').close()));
   for(const d of document.querySelectorAll('dialog'))d.addEventListener('click',e=>{if(e.target===d){const rect=d.getBoundingClientRect();if(e.clientX<rect.left||e.clientX>rect.right||e.clientY<rect.top||e.clientY>rect.bottom)d.close();}});
