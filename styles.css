@@ -223,7 +223,33 @@ html{zoom:var(--ui-scale);min-height:calc(100dvh / var(--ui-scale))}
 .map-shell[data-layer="above"] .above-affected{fill:var(--above-event-color)}
 .map-shell[data-layer="above"] [data-building].above-affected{stroke:var(--above-event-color);stroke-opacity:.65}
 
-/* Project guide: the brand leads the section at every screen size. */
+/* Project introduction: the brand leads the section at every screen size. */
+.reference-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:14px;align-items:start}
+.ref-card{min-width:0;padding:16px;border:1px solid #e3ebf6;border-radius:14px;background:#f8fbff}
+.ref-card h4{margin:0 0 14px;font-size:16px;line-height:1.4;letter-spacing:-.2px;color:#24486f}
+.ref-key-top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+.ref-key-top section{min-width:0}
+.ref-key-row{display:flex;align-items:center;gap:9px;min-height:65px;padding:5px 0}
+.ref-key-row>div,.ref-control>div{min-width:0}
+.ref-key-row b,.ref-control b{display:block;font-size:12px;line-height:1.5;color:#315676;overflow-wrap:anywhere}
+.ref-key-row div>span,.ref-control div>span{display:block;margin-top:2px;font-size:11px;line-height:1.5;color:#7a8fa8;overflow-wrap:anywhere}
+.ref-status-pin{width:22px;height:29px;flex-shrink:0}
+.ref-status-planned{color:var(--event-outage)}.ref-status-work{color:var(--event-active)}.ref-status-done{color:var(--event-confirmed)}
+.ref-key-row .layer-thumbnail{width:29px;height:34px;transform:scale(.85);transform-origin:center}
+.ref-part{margin-top:20px;padding-top:18px;border-top:1px solid #e3ebf6}
+.ref-event-grid,.ref-control-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:17px 14px}
+.ref-event,.ref-control{display:flex;align-items:center;gap:10px;min-width:0}
+.ref-event .icon,.ref-control .icon{width:25px;height:25px;color:var(--blue);flex-shrink:0}
+.ref-event b{font-size:12px;line-height:1.5;color:#315676;overflow-wrap:anywhere}
+.ref-control{align-items:flex-start}
+.ref-control .icon{margin-top:2px}
+.ref-card .ref-location{font-size:11px;line-height:1.7;color:#7a8fa8;margin:16px 0 0}
+.ref-notes{display:grid;gap:12px;min-width:0}
+.ref-note{background:#fff}
+.ref-note h4{margin-bottom:8px}
+.ref-note p{margin:0;font-size:13px;line-height:1.75;color:#687f99;overflow-wrap:anywhere}
+@media(max-width:607.5px){.reference-grid{grid-template-columns:minmax(0,1fr)}.ref-key-top{gap:12px}.ref-card{padding:14px}.ref-note h4{font-size:15px}}
+@media(max-width:435.375px){.ref-key-top{grid-template-columns:minmax(0,1fr);gap:16px}.ref-key-row{min-height:54px}.ref-key-top h4{margin-bottom:6px}.ref-event-grid,.ref-control-grid{gap:16px 10px}}
 #aboutModal{max-width:800px}
 .about-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:28px}
 .about-header>.icon-button{flex-shrink:0}
@@ -249,48 +275,6 @@ html{zoom:var(--ui-scale);min-height:calc(100dvh / var(--ui-scale))}
 .about-features>div{min-width:0;border:1px solid #e5edf8;background:#f8fbff;border-radius:12px;padding:15px}
 .about-features dt{font-size:calc(11px + 2pt);font-weight:800;line-height:1.6;color:#315677;margin-bottom:6px}
 .about-features dd{font-size:calc(10px + 2pt);line-height:1.8;color:#71849d;margin:0;overflow-wrap:anywhere}
-.about-guide{font-size:calc(11px + 2pt);line-height:1.8;color:#71849d;padding-left:24px;margin:0 0 16px}
-.about-guide li{padding-left:5px;margin-bottom:12px;overflow-wrap:anywhere}
-.about-guide li::marker{font-weight:800;color:var(--blue)}
-.about-guide b{color:#315677}
-.guidebook{min-width:0}
-.guide-intro .eyebrow{font-size:10px;letter-spacing:1.2px;margin-bottom:8px;color:#6c8bb3}
-.guide-intro h3{margin-bottom:10px}
-.guide-intro>p,.guide-step-content>p{font-size:14px;line-height:1.8;color:#637c99;margin:0 0 16px;overflow-wrap:anywhere}
-.guide-nav{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:20px 0 14px}
-.guide-nav button{display:flex;align-items:center;gap:9px;min-width:0;min-height:44px;padding:10px 12px;border:1px solid #dfeaf8;border-radius:10px;background:#f5f9ff;text-align:left;font-size:12px;line-height:1.5;font-weight:650;color:#315b8e}
-.guide-nav button:hover{background:#eaf3ff;border-color:#b9d5f8}
-.guide-nav button>span{display:grid;place-items:center;width:23px;height:23px;flex-shrink:0;border-radius:7px;background:#e3efff;color:#2376eb;font-size:11px;font-weight:800}
-#aboutModal .guide-image-note{font-size:11px;line-height:1.7;color:#7d90a8;margin:0 0 18px}
-.guide-chapters{display:grid;gap:12px}
-.guide-step{min-width:0;border:1px solid #dfe9f6;border-radius:13px;background:#fff;overflow:hidden;scroll-margin-top:20px}
-.guide-step[open]{border-color:#bdd7f8}
-.guide-step>summary{display:flex;align-items:center;gap:12px;min-height:78px;padding:15px;cursor:pointer;list-style:none;background:#f8fbff}
-.guide-step>summary::-webkit-details-marker{display:none}
-.guide-step>summary::marker{content:''}
-.guide-number{display:grid;place-items:center;flex-shrink:0;width:36px;height:36px;border:1px solid #d9e8fa;border-radius:11px;color:#2376eb;background:#edf5ff;font-size:13px;font-weight:800}
-.guide-step>summary>span:nth-child(2){flex:1;min-width:0}
-.guide-step>summary b{display:block;font-size:14px;line-height:1.5;color:#254d77}
-.guide-step>summary small{display:block;margin-top:3px;font-size:11px;line-height:1.5;color:#7d91aa}
-.guide-chevron{width:19px;height:19px;color:#7e9bbf;flex-shrink:0}
-.guide-step[open]>summary .guide-chevron{transform:rotate(180deg)}
-.guide-step-content{padding:17px 15px 15px;border-top:1px solid #e9f0f9}
-.guide-images{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-bottom:14px}
-.guide-images figure{min-width:0;margin:0}
-.guide-image-button{display:block;position:relative;padding:0;width:100%;border:1px solid #dfe9f6;border-radius:9px;overflow:hidden;background:#f4f7fc;cursor:zoom-in}
-.guide-image-button img{display:block;width:100%;height:auto;aspect-ratio:16/11;object-fit:contain}
-.guide-image-expand{display:flex;align-items:center;gap:4px;position:absolute;right:6px;top:6px;padding:4px 6px;border:1px solid #dbe7f6;border-radius:5px;background:#fffffff0;color:#416b9c;font-size:9px;line-height:1.5}
-.guide-image-expand .icon{width:12px;height:12px}
-.guide-images figcaption{padding:7px 1px 0;font-size:11px;line-height:1.5;font-weight:650;color:#5c7c9e}
-.guide-step-content .guide-tip{padding:10px 12px;margin:0;border-left:3px solid #bdd8fb;border-radius:0 8px 8px 0;background:#f4f8fe;font-size:12px;line-height:1.75;color:#6e85a0}
-.guide-image-modal{width:min(1000px,calc(100vw / var(--ui-scale) - 24px));max-width:1000px;padding:0;overflow:hidden}
-.guide-image-modal-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 18px;border-bottom:1px solid #e5edf8;background:#fff}
-.guide-image-modal-heading h2{font-size:17px;line-height:1.5;margin:0;letter-spacing:0;overflow-wrap:anywhere}
-.guide-image-modal-heading .icon-button{flex-shrink:0}
-.guide-image-scroll{overflow:auto;max-height:calc(100dvh / var(--ui-scale) - 230px);background:#f4f7fc;overscroll-behavior:contain}
-.guide-image-scroll img{display:block;width:100%;min-width:640px;max-width:none;height:auto}
-.guide-image-modal-note{margin:0;padding:12px 18px;font-size:11px;line-height:1.7;color:#7187a2}
-@media(max-width:607.5px){.guide-images{grid-template-columns:minmax(0,1fr)}.guide-nav{grid-template-columns:minmax(0,1fr)}.guide-step>summary{padding:13px;gap:10px}.guide-step-content{padding:14px 12px}.guide-image-modal-heading{padding:12px}.guide-image-modal-heading h2{font-size:14px}.guide-image-modal-note{padding:10px 12px}}
 .about-section .about-hint{border-left:3px solid #b6d5fa;background:#f4f8fe;border-radius:0 9px 9px 0;padding:12px 14px;font-size:calc(10px + 2pt);margin-bottom:0}
 .about-pilot{padding:19px 20px;margin-top:26px;border:1px solid #dce8f8;border-radius:14px;background:#eff5fd}
 .about-pilot p{font-size:calc(10px + 2pt)}
@@ -431,6 +415,33 @@ html{zoom:var(--ui-scale);min-height:calc(100dvh / var(--ui-scale))}
 .events-panel .carousel-dot>span{width:6px;height:6px;border-radius:50%;background:#c5d6ec}
 .events-panel .carousel-dot[aria-pressed="true"]>span{background:var(--blue);box-shadow:0 0 0 3px #e0edff}
 .events-panel .scenario-carousel-note{display:block;margin-top:5px;font-size:10px;line-height:1.5;color:#8798ae}
+.rail-item-label,.map-toolbar .map-about-button{display:none}
+/* The existing navigation becomes a bottom bar on phones, preserving its actions. */
+@media(max-width:769.5px){
+  :root{--mobile-nav-height:calc(68px + env(safe-area-inset-bottom,0px) / var(--ui-scale))}
+  .workspace{height:calc(100dvh / var(--ui-scale) - 66px - var(--mobile-nav-height))}
+  .rail{position:fixed;inset:auto 0 0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));width:auto;height:var(--mobile-nav-height);min-height:0;gap:4px;padding:7px 10px calc(7px + env(safe-area-inset-bottom,0px) / var(--ui-scale));border:0;border-top:1px solid #dfe9f6;background:#fff;z-index:12}
+  .rail .rail-button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:100%;height:48px;padding:4px 2px;border-radius:10px;color:#8195ae}
+  .rail .rail-button.active{color:var(--blue);background:#edf5ff}
+  .rail .rail-button .icon{width:22px;height:22px}
+  .rail .rail-item-label{display:block;font-size:10px;line-height:1.4;font-weight:650;white-space:nowrap}
+  .rail .rail-dot{top:4px;right:calc(50% - 18px)}
+  .rail>[data-about],.rail-spacer,.rail-line,.rail-caption{display:none}
+  .map-toolbar .map-about-button{position:absolute;top:calc(100% + 10px);right:-1px;display:grid;place-items:center;width:39px;height:39px;border:1px solid #fff;border-radius:11px;background:#fff;color:#6c91be;box-shadow:0 5px 20px #1c58990b}
+  .map-toolbar .map-about-button .icon{width:19px;height:19px}
+}
+@media(max-width:769.5px) and (max-height:507px){
+  :root{--mobile-nav-height:calc(54px + env(safe-area-inset-bottom,0px) / var(--ui-scale))}
+  .topbar{height:54px}
+  .workspace{height:calc(100dvh / var(--ui-scale) - 54px - var(--mobile-nav-height))}
+  .rail{padding-top:4px;padding-bottom:calc(4px + env(safe-area-inset-bottom,0px) / var(--ui-scale))}
+  .rail .rail-button{height:44px;gap:2px}
+  .rail .rail-button .icon{width:19px;height:19px}
+  .rail .rail-item-label{font-size:9px}
+  .workspace .events-panel .panel-heading{padding:6px 12px}
+  .map-toolbar{top:58px}
+  .map-toolbar .map-about-button{top:-1px;right:calc(100% + 9px)}
+}
 /* One edge-to-edge mobile sheet; keep the map's information at its existing anchors. */
 @media(max-width:769.5px){
   .events-panel{--map-info-height:calc(58px + env(safe-area-inset-bottom,0px) / var(--ui-scale));left:0;right:0;bottom:0;width:auto;padding-bottom:var(--map-info-height);border:0;border-top:1px solid #e5eef9;border-radius:16px 16px 0 0;background:#fff;max-height:calc(63% + var(--map-info-height))}
@@ -452,4 +463,65 @@ html{zoom:var(--ui-scale);min-height:calc(100dvh / var(--ui-scale))}
   .events-panel .scenario-facts>div{grid-template-columns:minmax(0,1fr);gap:4px}
   .events-panel .scenario-facts dd{padding-left:27px}
   .events-panel .scenario-source>div{grid-template-columns:minmax(0,1fr);gap:3px}
+}
+
+/* Three UI text roles. Operational metadata and text drawn on the map keep their own styles. */
+:root{--type-heading:22px;--type-subheading:16px;--type-body:14px}
+.brand,.about-brand span,.page-heading h1,.events-panel .panel-heading h2,.events-panel .scenario-heading h3,.map-event-popup h3,.modal h2,#aboutModal>h2{
+  font:700 var(--type-heading)/1.35 var(--font)!important;letter-spacing:0!important;
+}
+.top-links,.events-panel .event-card h3,.events-panel .home-prompt h3,.events-panel .scenario-more>h4,.events-panel .story-title,.events-panel .work-story b,.events-panel .restriction b,.about-section h3,.ref-card h4,.ref-key-row b,.ref-event b,.ref-control b,.activity-item b,.empty-state strong,.account-tabs button,.modal input,.modal textarea,.modal select{
+  font:600 var(--type-subheading)/1.5 var(--font)!important;letter-spacing:0!important;
+}
+.brand-slogan,.about-brand p,.page-heading .eyebrow,.page-heading p,.panel-heading .eyebrow,.modal>.eyebrow,.control-caption,.layer-tab b,.mobile-layer-toggle,.map-search input,.search-results button,.primary-button,.report-button>span,.events-panel .panel-filter button,.events-panel .home-prompt p,.events-panel .home-prompt button,.events-panel .detail-back,.events-panel .scenario-more .detail-description,.events-panel .restriction,.events-panel .work-story small,.events-panel .work-related .story-link,.events-panel .follow-button,.map-popup-details,.modal-lead,#aboutModal .modal-lead,.about-section>p,.ref-key-row div>span,.ref-control div>span,.ref-card .ref-location,.ref-note p,.modal label,.home-preview,.activity-empty,.inline-action,.toast,.empty-state,.rail .rail-item-label{
+  font:400 var(--type-body)/1.6 var(--font)!important;letter-spacing:0!important;
+}
+/* Text entry stays at 16px on phones so focusing a form does not zoom the page. */
+.map-search input{font:600 var(--type-subheading)/1.5 var(--font)!important}
+.brand b,.about-brand b{font:inherit!important}
+.events-panel .story-title span{font-weight:700}
+.small-counter{font-weight:800;line-height:normal;letter-spacing:normal}
+.events-panel .panel-heading>div,.events-panel .panel-heading h2,.ref-card section,.ref-event b,.ref-control>div,.activity-item>div{min-width:0}
+.events-panel .panel-heading h2{flex-wrap:wrap;row-gap:6px}
+.events-panel .panel-filter{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+.events-panel .panel-filter button{min-height:40px;white-space:normal;overflow-wrap:anywhere}
+.events-panel .event-card h3,.events-panel .scenario-heading h3,.ref-card h4,.ref-control b,.ref-event b,.activity-item b,.modal h2{overflow-wrap:anywhere}
+.primary-button,.follow-button,.map-popup-details,.inline-action{min-height:42px;height:auto;white-space:normal;overflow-wrap:anywhere}
+.account-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
+.account-tabs button{min-width:0;white-space:normal;overflow-wrap:anywhere}
+.modal form,.modal label,.modal input,.modal textarea,.modal select{min-width:0;max-width:100%}
+.reference-grid{grid-template-columns:minmax(0,1fr)}
+.ref-key-top{gap:24px}
+.ref-key-row,.ref-event,.ref-control{align-items:flex-start}
+.ref-key-row{min-height:0;padding:8px 0}
+.ref-key-row>div,.ref-event b,.ref-control>div{overflow-wrap:anywhere}
+.ref-key-row .ref-status-pin,.ref-key-row .layer-thumbnail{margin-top:3px}
+.ref-control-grid,.ref-event-grid{gap:18px 24px}
+.ref-note p{margin-bottom:0}
+.scenario-scene-placeholder strong{font:600 var(--type-subheading)/1.5 var(--font)!important;letter-spacing:0}
+@media(min-width:1013.508px){.brand{grid-template-rows:34px auto}.brand-slogan{white-space:normal;max-width:220px}}
+@media(min-width:770px) and (max-width:1012.5px){.events-panel .panel-filter{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(min-width:435.376px) and (max-width:769.5px){.events-panel .panel-filter{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:769.5px){
+  :root{--mobile-nav-height:calc(82px + env(safe-area-inset-bottom,0px) / var(--ui-scale))}
+  .rail .rail-button{height:64px;padding:5px 2px;gap:4px}
+  .rail .rail-item-label{white-space:normal;overflow-wrap:anywhere;text-align:center;max-width:100%}
+  .events-panel .panel-heading{padding:12px 14px}
+  .events-panel .panel-heading h2{margin:0}
+  .toast{bottom:calc(var(--mobile-nav-height) + 12px)}
+}
+@media(max-width:435.375px){
+  .events-panel .panel-filter{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ref-control-grid,.ref-event-grid{grid-template-columns:minmax(0,1fr)}
+  .ref-key-top{gap:18px}
+}
+@media(max-width:364.5px){
+  .rail{grid-template-columns:minmax(0,.8fr) minmax(0,.95fr) minmax(0,1fr) minmax(0,1.15fr);gap:2px;padding-left:6px;padding-right:6px}
+  .topbar .report-button{width:36px;min-width:36px;height:36px;min-height:36px;padding:0!important}
+  .topbar .report-button>span{display:none}
+  .topbar .header-actions{gap:5px}
+}
+@media(max-width:769.5px) and (max-height:507px){
+  :root{--mobile-nav-height:calc(70px + env(safe-area-inset-bottom,0px) / var(--ui-scale))}
+  .rail .rail-button{height:56px;gap:2px}
 }

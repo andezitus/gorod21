@@ -1,0 +1,21 @@
+При обновлении существующей копии удалите перечисленные устаревшие файлы.
+Проще удалить целиком папку assets/guidebook/ и файл design/guidebook.md.
+Этот список служебный: загружать его на сайт не требуется.
+
+assets/guidebook/event-after.svg
+assets/guidebook/event-before.svg
+assets/guidebook/follow-after.svg
+assets/guidebook/follow-before.svg
+assets/guidebook/home-after.svg
+assets/guidebook/home-before.svg
+assets/guidebook/layers-after.svg
+assets/guidebook/layers-before.svg
+assets/guidebook/map-after.svg
+assets/guidebook/map-before.svg
+assets/guidebook/progress-after.svg
+assets/guidebook/progress-before.svg
+assets/guidebook/report-after.svg
+assets/guidebook/report-before.svg
+assets/guidebook/search-after.svg
+assets/guidebook/search-before.svg
+design/guidebook.md

@@ -32,7 +32,11 @@
   let toastTimeout;
   let popupEventId=null;
   function toast(message){clearTimeout(toastTimeout);$('toast').querySelector('span').textContent=message;$('toast').classList.add('visible');toastTimeout=setTimeout(()=>$('toast').classList.remove('visible'),4300);}
-  function openModal(id){const d=$(id);if(!d.open)d.showModal();}
+  function updateMainMenu(){
+    const active=$('reportModal').open?'reportsNav':$('homeModal').open?'homeNav':$('activityModal').open?($('activityModal').dataset.mode==='reports'?'reportsNav':'savedNav'):'mapNav';
+    for(const id of ['mapNav','homeNav','savedNav','reportsNav']){$(id).classList.toggle('active',id===active);$(id).setAttribute('aria-pressed',String(id===active));}
+  }
+  function openModal(id){const d=$(id);if(!d.open)d.showModal();updateMainMenu();}
   function closeModal(id){$(id).close();}
   function uiScale(){return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ui-scale'))||1;}
   function isMobile(){return matchMedia(`(max-width:${760*uiScale()}px)`).matches;}
@@ -250,6 +254,7 @@
   }
   function showAccount(){setAccountMode('login');openModal('accountModal');}
   function showActivity(mode='saved'){
+    $('activityModal').dataset.mode=mode;
     const reports=mode==='reports';$('activityTitle').textContent=reports?'Мои обращения':'Подписки и уведомления';$('activityIcon').querySelector('use').setAttribute('href',reports?'#i-inbox':'#i-bell');
     let html='';
     if(reports){
@@ -311,26 +316,14 @@
     const go=e.target.closest('[data-go-event]');if(go){openEvent(go.dataset.goEvent);$('detailBack').focus({preventScroll:true});}
   });
   document.querySelectorAll('[data-about]').forEach(b=>b.addEventListener('click',()=>openModal('aboutModal')));
-  $('aboutModal').addEventListener('click',event=>{
-    const jump=event.target.closest('[data-guide-target]');
-    if(jump){
-      const chapter=$(jump.dataset.guideTarget);if(!chapter)return;
-      chapter.open=true;chapter.scrollIntoView?.({block:'start'});chapter.querySelector('summary').focus({preventScroll:true});return;
-    }
-    const button=event.target.closest('[data-guide-image]');if(!button)return;
-    const image=button.querySelector('img');if(!image)return;
-    $('guideImageTitle').textContent=image.alt;
-    $('guideZoomImage').src=image.src;$('guideZoomImage').alt=image.alt;
-    openModal('guideImageModal');$('guideImageModal').querySelector('[data-close]').focus({preventScroll:true});
-  });
-  $('guideImageModal').addEventListener('close',()=>{$('guideZoomImage').removeAttribute('src');$('guideZoomImage').alt='';});
   document.querySelectorAll('[data-report]').forEach(b=>b.addEventListener('click',()=>{$('reportLayer').value=state.layer;openModal('reportModal');}));
   document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>b.closest('dialog').close()));
+  document.querySelectorAll('dialog').forEach(d=>d.addEventListener('close',updateMainMenu));
   for(const d of document.querySelectorAll('dialog'))d.addEventListener('click',e=>{if(e.target===d){const rect=d.getBoundingClientRect();if(e.clientX<rect.left||e.clientX>rect.right||e.clientY<rect.top||e.clientY>rect.bottom)d.close();}});
   for(const id of ['homeNav','setupHomeBtn'])$(id).addEventListener('click',showHome);
   $('homeBtn').addEventListener('click',showAccount);
   document.querySelectorAll('[data-account-mode]').forEach(button=>button.addEventListener('click',()=>setAccountMode(button.dataset.accountMode)));
-  $('mapNav').addEventListener('click',()=>{closeDetail();map.reset();renderList();updateScale();$('mapViewport').focus();});
+  $('mapNav').addEventListener('click',()=>{closeDetail();closeMapPopup();if(isMobile()){$('eventsPanel').classList.remove('expanded');$('panelToggle').setAttribute('aria-expanded','false');$('panelToggle').setAttribute('aria-label','Развернуть список событий');}map.reset();renderList();updateScale();updateMainMenu();$('mapViewport').focus();});
   $('savedNav').addEventListener('click',()=>showActivity());$('notificationsBtn').addEventListener('click',()=>showActivity());$('reportsNav').addEventListener('click',()=>showActivity('reports'));
   $('activityBody').addEventListener('click',e=>{
     const item=e.target.closest('[data-activity-event]');if(item){closeModal('activityModal');openEvent(item.dataset.activityEvent);return;}
